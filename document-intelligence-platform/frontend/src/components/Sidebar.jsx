@@ -40,7 +40,7 @@ const Sidebar = () => {
   };
 
   return (
-    <div className={`flex flex-col ${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} border-r ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} transition-all duration-200`}>
+    <div className={`flex flex-col h-screen w-64 ${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} border-r ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} transition-all duration-200 flex-shrink-0`}>
       {/* Sidebar content */}
       <div className="flex-1 overflow-y-auto">
         <div className="p-4">
