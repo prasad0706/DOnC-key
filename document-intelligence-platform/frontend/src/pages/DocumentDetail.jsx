@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
-import { DocumentTextIcon, ClockIcon, CheckCircleIcon, XCircleIcon, KeyIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { DocumentTextIcon, ClockIcon, CheckCircleIcon, XCircleIcon, KeyIcon, ArrowLeftIcon, TableCellsIcon, CodeBracketIcon, PlayIcon } from '@heroicons/react/24/outline';
 import { getDocumentDetail, generateApiKey } from '../utils/api';
+import StructureTab from '../components/StructureTab';
+import ApiDocsTab from '../components/ApiDocsTab';
+import TryApiTab from '../components/TryApiTab';
 
 const DocumentDetail = () => {
   const { id } = useParams();
@@ -185,21 +188,53 @@ const DocumentDetail = () => {
         <nav className="-mb-px flex space-x-8" aria-label="Tabs">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'overview'
+            className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center ${activeTab === 'overview'
               ? 'border-blue-500 text-blue-600 dark:text-blue-400'
               : `border-transparent ${theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`
               }`}
           >
+            <DocumentTextIcon className="h-4 w-4 mr-1" />
             Overview
           </button>
           <button
-            onClick={() => setActiveTab('api-keys')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'api-keys'
+            onClick={() => setActiveTab('structure')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center ${activeTab === 'structure'
               ? 'border-blue-500 text-blue-600 dark:text-blue-400'
               : `border-transparent ${theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`
               }`}
           >
+            <TableCellsIcon className="h-4 w-4 mr-1" />
+            Structure
+          </button>
+          <button
+            onClick={() => setActiveTab('api-keys')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center ${activeTab === 'api-keys'
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+              : `border-transparent ${theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`
+              }`}
+          >
+            <KeyIcon className="h-4 w-4 mr-1" />
             API Keys
+          </button>
+          <button
+            onClick={() => setActiveTab('api-docs')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center ${activeTab === 'api-docs'
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+              : `border-transparent ${theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`
+              }`}
+          >
+            <CodeBracketIcon className="h-4 w-4 mr-1" />
+            API Docs
+          </button>
+          <button
+            onClick={() => setActiveTab('try-api')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center ${activeTab === 'try-api'
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+              : `border-transparent ${theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`
+              }`}
+          >
+            <PlayIcon className="h-4 w-4 mr-1" />
+            Try API
           </button>
         </nav>
       </div>
@@ -252,6 +287,10 @@ const DocumentDetail = () => {
             </div>
           )}
         </div>
+      )}
+
+      {activeTab === 'structure' && (
+        <StructureTab />
       )}
 
       {activeTab === 'api-keys' && (
@@ -336,6 +375,14 @@ const DocumentDetail = () => {
             </table>
           </div>
         </div>
+      )}
+
+      {activeTab === 'api-docs' && (
+        <ApiDocsTab documentId={document.id} />
+      )}
+
+      {activeTab === 'try-api' && (
+        <TryApiTab documentId={document.id} />
       )}
 
       {/* API Key Modal */}

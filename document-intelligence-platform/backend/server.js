@@ -20,7 +20,8 @@ app.use(express.json());
 // Firebase Admin initialization
 if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_PROJECT_ID !== 'your-firebase-project-id' &&
     process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_CLIENT_EMAIL !== 'your-firebase-client-email' &&
-    process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_PRIVATE_KEY !== 'your-firebase-private-key') {
+    process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_PRIVATE_KEY !== 'your-firebase-private-key' &&
+    process.env.FIREBASE_PRIVATE_KEY.includes('-----BEGIN PRIVATE KEY-----') && process.env.FIREBASE_PRIVATE_KEY.includes('-----END PRIVATE KEY-----')) {
   firebaseAdmin.initializeApp({
     credential: firebaseAdmin.credential.cert({
       projectId: process.env.FIREBASE_PROJECT_ID,

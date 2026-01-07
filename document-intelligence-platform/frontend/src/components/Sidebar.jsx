@@ -10,7 +10,9 @@ import {
   UserIcon,
   MoonIcon,
   SunIcon,
-  ArrowLeftOnRectangleIcon
+  ArrowLeftOnRectangleIcon,
+  BookOpenIcon,
+  InformationCircleIcon
 } from '@heroicons/react/24/outline';
 
 const Sidebar = () => {
@@ -22,7 +24,7 @@ const Sidebar = () => {
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: HomeIcon },
     { name: 'Documents', path: '/documents', icon: DocumentTextIcon },
-    { name: 'API Keys', path: '/api-keys', icon: KeyIcon },
+    { name: 'Platform Docs', path: '/platform-docs', icon: BookOpenIcon },
     { name: 'Usage', path: '/usage', icon: ChartBarIcon },
     { name: 'Profile', path: '/profile', icon: UserIcon },
   ];

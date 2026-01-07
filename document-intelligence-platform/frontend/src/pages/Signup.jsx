@@ -34,8 +34,18 @@ const Signup = () => {
       await signup(email, password);
       navigate('/dashboard');
     } catch (err) {
-      setError('Failed to create an account. Please try again.');
       console.error('Signup error:', err);
+      if (err.code === 'auth/email-already-in-use') {
+        setError('This email address is already in use.');
+      } else if (err.code === 'auth/invalid-email') {
+        setError('Please enter a valid email address.');
+      } else if (err.code === 'auth/weak-password') {
+        setError('Password should be at least 6 characters.');
+      } else if (err.code === 'auth/operation-not-allowed') {
+        setError('Email/password accounts are not enabled.');
+      } else {
+        setError('Failed to create an account. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
