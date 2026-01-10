@@ -7,7 +7,19 @@ const documentSchema = new mongoose.Schema({
   },
   fileUrl: {
     type: String,
-    required: true
+    required: false // Not required for local file uploads
+  },
+  fileName: {
+    type: String,
+    required: false
+  },
+  fileType: {
+    type: String,
+    required: false
+  },
+  fileSize: {
+    type: Number,
+    required: false
   },
   status: {
     type: String,
@@ -25,6 +37,10 @@ const documentSchema = new mongoose.Schema({
   error: {
     type: String,
     default: null
+  },
+  tempFilePath: {
+    type: String,
+    required: false
   }
 });
 

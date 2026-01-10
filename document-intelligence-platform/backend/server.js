@@ -57,8 +57,55 @@ mongoose.connect(process.env.MONGODB_URI)
   });
 
 // Redis connection for BullMQ
-const redisConnection = new IORedis(process.env.REDIS_URL);
-const documentQueue = new Queue('documentProcessing', { connection: redisConnection });
+let documentQueue;
+let redisConnection;
+
+// Check if REDIS_URL is configured before attempting connection
+if (process.env.REDIS_URL && process.env.REDIS_URL.trim() !== '') {
+  try {
+    redisConnection = new IORedis(process.env.REDIS_URL);
+    documentQueue = new Queue('documentProcessing', { connection: redisConnection });
+    console.log('Connected to Redis');
+  } catch (error) {
+    console.error('Failed to connect to Redis, using fallback processing:', error.message);
+    
+    // Simple fallback queue implementation
+    documentQueue = {
+      add: async (name, data) => {
+        console.log(`Fallback processing for document ${data.documentId}`);
+        // Process immediately instead of queuing
+        setTimeout(async () => {
+          try {
+            const { processDocument } = require('./worker');
+            await processDocument(data.documentId, data.filePath || data.fileUrl, data.fileName);
+          } catch (error) {
+            console.error('Fallback processing error:', error);
+          }
+        }, 100);
+        return Promise.resolve();
+      }
+    };
+  }
+} else {
+  console.log('REDIS_URL not configured, using fallback processing');
+  
+  // Simple fallback queue implementation
+  documentQueue = {
+    add: async (name, data) => {
+      console.log(`Fallback processing for document ${data.documentId}`);
+      // Process immediately instead of queuing
+      setTimeout(async () => {
+        try {
+          const { processDocument } = require('./worker');
+          await processDocument(data.documentId, data.filePath || data.fileUrl, data.fileName);
+        } catch (error) {
+          console.error('Fallback processing error:', error);
+        }
+      }, 100);
+      return Promise.resolve();
+    }
+  };
+}
 
 // Helper function to generate document ID
 function generateDocumentId() {
@@ -220,6 +267,7 @@ app.post('/api/documents/upload', upload.single('document'), async (req, res) =>
     // Insert a document record into MongoDB
     const document = new Document({
       _id: documentId,
+      fileUrl: tempFilePath, // Using temp file path as the URL equivalent
       fileName: req.file.originalname,
       fileType: req.file.mimetype,
       fileSize: req.file.size,
