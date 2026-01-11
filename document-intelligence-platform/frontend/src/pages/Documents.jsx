@@ -13,51 +13,10 @@ const Documents = () => {
   useEffect(() => {
     const fetchDocuments = async () => {
       try {
-        // Mock data - in a real app, this would be the API call
-        const mockDocuments = [
-          {
-            id: 'doc_001',
-            name: 'Invoice_2023_Q4.pdf',
-            status: 'ready',
-            uploadedAt: '2023-12-15T10:30:00Z',
-            size: '2.4 MB'
-          },
-          {
-            id: 'doc_002',
-            name: 'Contract_Agreement.docx',
-            status: 'processing',
-            uploadedAt: '2023-12-14T14:15:00Z',
-            size: '1.8 MB'
-          },
-          {
-            id: 'doc_003',
-            name: 'Product_Catalog.pdf',
-            status: 'queued',
-            uploadedAt: '2023-12-13T09:45:00Z',
-            size: '5.6 MB'
-          },
-          {
-            id: 'doc_004',
-            name: 'Financial_Report.xlsx',
-            status: 'failed',
-            uploadedAt: '2023-12-12T16:20:00Z',
-            size: '3.2 MB'
-          },
-          {
-            id: 'doc_005',
-            name: 'User_Manual.pdf',
-            status: 'ready',
-            uploadedAt: '2023-12-10T11:10:00Z',
-            size: '8.1 MB'
-          }
-        ];
-
-        setDocuments(mockDocuments);
+        // Real API call to fetch documents
+        const data = await getDocuments();
+        setDocuments(data);
         setLoading(false);
-
-        // Real API call would be:
-        // const data = await getDocuments();
-        // setDocuments(data);
       } catch (err) {
         setError('Failed to fetch documents');
         setLoading(false);

@@ -7,6 +7,7 @@ import ApiKeys from './pages/ApiKeys';
 import Usage from './pages/Usage';
 import Profile from './pages/Profile';
 import PlatformDocs from './pages/PlatformDocs';
+import UploadDocument from './pages/UploadDocument';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -31,6 +32,7 @@ function App() {
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/documents" element={<Documents />} />
+        <Route path="/documents/upload" element={<UploadDocument />} />
         <Route path="/documents/:id" element={<DocumentDetail />} />
         <Route path="/documents/:id/api-keys" element={<ApiKeys />} />
         <Route path="/platform-docs" element={<PlatformDocs />} />

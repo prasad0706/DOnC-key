@@ -21,27 +21,10 @@ const DocumentDetail = () => {
   useEffect(() => {
     const fetchDocument = async () => {
       try {
-        // Mock data - in a real app, this would be the API call
-        const mockDocument = {
-          id: id,
-          name: 'Invoice_2023_Q4.pdf',
-          status: 'ready',
-          uploadedAt: '2023-12-15T10:30:00Z',
-          size: '2.4 MB',
-          processingResult: {
-            pages: 12,
-            extractedText: 'Invoice data extracted successfully',
-            confidence: 0.98,
-            entities: ['Company Name', 'Invoice Number', 'Date', 'Amount']
-          }
-        };
-
-        setDocument(mockDocument);
+        // Real API call to fetch document details
+        const data = await getDocumentDetail(id);
+        setDocument(data);
         setLoading(false);
-
-        // Real API call would be:
-        // const data = await getDocumentDetail(id);
-        // setDocument(data);
       } catch (err) {
         setError('Failed to fetch document details');
         setLoading(false);
@@ -54,22 +37,10 @@ const DocumentDetail = () => {
 
   const handleGenerateApiKey = async () => {
     try {
-      // Mock API key generation
-      const mockKey = {
-        id: 'key_12345',
-        key: 'docintel_sk_live_abc123def456ghi789jkl012mno345',
-        createdAt: new Date().toISOString(),
-        status: 'active',
-        usageCount: 0
-      };
-
-      setGeneratedKey(mockKey);
+      // Real API call to generate API key
+      const key = await generateApiKey(id);
+      setGeneratedKey(key);
       setShowKeyModal(true);
-
-      // Real API call would be:
-      // const key = await generateApiKey(id);
-      // setGeneratedKey(key);
-      // setShowKeyModal(true);
     } catch (err) {
       console.error('Error generating API key:', err);
       // Handle error

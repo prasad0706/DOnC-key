@@ -215,26 +215,44 @@ app.post('/api/documents/upload', upload.single('document'), async (req, res) =>
     }
     
     // Write file buffer to temp location
-    fs.writeFileSync(tempFilePath, req.file.buffer);
+    try {
+      fs.writeFileSync(tempFilePath, req.file.buffer);
+    } catch (fileError) {
+      console.error('Error writing file:', fileError);
+      return res.status(500).json({ error: 'Failed to save uploaded file' });
+    }
 
     // Insert a document record into MongoDB
     const document = new Document({
       _id: documentId,
-      fileName: req.file.originalname,
-      fileType: req.file.mimetype,
-      fileSize: req.file.size,
-      status: 'processing',
-      tempFilePath: tempFilePath // Store path for processing
+      fileUrl: tempFilePath, // Using tempFilePath as fileUrl since that's what the model expects
+      status: 'processing'
     });
 
-    await document.save();
+    try {
+      await document.save();
+    } catch (dbError) {
+      console.error('Error saving document to DB:', dbError);
+      // Clean up the temp file if DB save fails
+      if (fs.existsSync(tempFilePath)) {
+        fs.unlinkSync(tempFilePath);
+      }
+      return res.status(500).json({ error: 'Failed to save document record' });
+    }
 
     // Queue the Job for processing
-    await documentQueue.add('process-document', {
-      documentId,
-      filePath: tempFilePath,
-      fileName: req.file.originalname
-    });
+    try {
+      await documentQueue.add('process-document', {
+        documentId,
+        filePath: tempFilePath,
+        fileName: req.file.originalname
+      });
+    } catch (queueError) {
+      console.error('Error queuing document for processing:', queueError);
+      // Update document status to failed if queueing fails
+      await Document.findByIdAndUpdate(documentId, { status: 'failed', error: 'Failed to queue for processing' });
+      return res.status(500).json({ error: 'Failed to queue document for processing' });
+    }
 
     res.status(202).json({
       message: 'Document uploaded and processing started',
@@ -252,6 +270,34 @@ app.post('/api/documents/upload', upload.single('document'), async (req, res) =>
 // Status endpoint
 app.get('/api/status', (req, res) => {
   res.json({ status: 'OK', message: 'Document Intelligence API is running' });
+});
+
+// Get all documents endpoint
+app.get('/api/documents', async (req, res) => {
+  try {
+    const documents = await Document.find().sort({ createdAt: -1 });
+    res.json(documents);
+  } catch (error) {
+    console.error('Get documents error:', error);
+    res.status(500).json({ error: 'Failed to fetch documents' });
+  }
+});
+
+// Get single document endpoint
+app.get('/api/documents/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const document = await Document.findById(id);
+    
+    if (!document) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+    
+    res.json(document);
+  } catch (error) {
+    console.error('Get document error:', error);
+    res.status(500).json({ error: 'Failed to fetch document' });
+  }
 });
 
 // Document status check endpoint
@@ -273,6 +319,60 @@ app.get('/api/documents/:documentId/status', async (req, res) => {
   } catch (error) {
     console.error('Status check error:', error);
     res.status(500).json({ error: 'Failed to check document status' });
+  }
+});
+
+// Endpoint to clean up documents with invalid paths
+app.delete('/api/admin/cleanup-documents', async (req, res) => {
+  try {
+    const Document = require('./models/Document');
+    const documents = await Document.find({ status: 'processing' });
+    
+    let cleanedCount = 0;
+    for (const doc of documents) {
+      if (doc.tempFilePath && !require('fs').existsSync(doc.tempFilePath)) {
+        // Delete document record
+        await Document.findByIdAndDelete(doc._id);
+        cleanedCount++;
+        
+        // Try to remove temp file reference if it exists in current path
+        const path = require('path');
+        const currentTempPath = path.join(__dirname, 'temp', path.basename(doc.tempFilePath));
+        if (require('fs').existsSync(currentTempPath)) {
+          require('fs').unlinkSync(currentTempPath);
+        }
+      }
+    }
+    
+    res.json({ message: `Cleaned up ${cleanedCount} invalid documents` });
+  } catch (error) {
+    console.error('Cleanup error:', error);
+    res.status(500).json({ error: 'Failed to cleanup documents' });
+  }
+});
+
+// Endpoint to clear all documents (for debugging)
+app.delete('/api/admin/clear-all-documents', async (req, res) => {
+  try {
+    const Document = require('./models/Document');
+    const result = await Document.deleteMany({});
+    
+    // Clean up temp directory
+    const fs = require('fs');
+    const path = require('path');
+    const tempDir = path.join(__dirname, 'temp');
+    
+    if (fs.existsSync(tempDir)) {
+      const files = fs.readdirSync(tempDir);
+      for (const file of files) {
+        fs.unlinkSync(path.join(tempDir, file));
+      }
+    }
+    
+    res.json({ message: `Cleared ${result.deletedCount} documents and cleaned temp directory` });
+  } catch (error) {
+    console.error('Clear all error:', error);
+    res.status(500).json({ error: 'Failed to clear documents' });
   }
 });
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { DocumentTextIcon, KeyIcon, ChartBarIcon, CloudArrowUpIcon } from '@heroicons/react/24/outline';
-import { uploadDocument } from '../utils/api';
+import { uploadDocument, getDocuments } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 
 const Dashboard = () => {
@@ -20,17 +20,41 @@ const Dashboard = () => {
     readyDocuments: 0
   });
 
-  // Mock data loading
+  // Load real stats
   useEffect(() => {
-    // In a real app, this would be an API call
-    const mockStats = {
-      totalDocuments: 12,
-      processingDocuments: 2,
-      apiKeys: 5,
-      totalApiCalls: 47,
-      readyDocuments: 10
+    const loadStats = async () => {
+      try {
+        const documents = await getDocuments();
+        
+        const totalDocuments = documents.length;
+        const processingDocuments = documents.filter(doc => doc.status === 'processing' || doc.status === 'queued').length;
+        const readyDocuments = documents.filter(doc => doc.status === 'ready').length;
+        
+        // For now, using mock values for apiKeys and totalApiCalls since we don't have that API yet
+        const stats = {
+          totalDocuments,
+          processingDocuments,
+          apiKeys: 0, // Will need API to fetch this
+          totalApiCalls: 0, // Will need API to fetch this
+          readyDocuments
+        };
+        
+        setStats(stats);
+      } catch (error) {
+        console.error('Failed to load dashboard stats:', error);
+        // Fallback to mock data if API fails
+        const mockStats = {
+          totalDocuments: 0,
+          processingDocuments: 0,
+          apiKeys: 0,
+          totalApiCalls: 0,
+          readyDocuments: 0
+        };
+        setStats(mockStats);
+      }
     };
-    setStats(mockStats);
+    
+    loadStats();
   }, []);
 
   const handleFileChange = (e) => {
