@@ -57,7 +57,9 @@ mongoose.connect(process.env.MONGODB_URI)
   });
 
 // Redis connection for BullMQ
-const redisConnection = new IORedis(process.env.REDIS_URL);
+const redisConnection = new IORedis(process.env.REDIS_URL, {
+  maxRetriesPerRequest: null,
+});
 const documentQueue = new Queue('documentProcessing', { connection: redisConnection });
 
 // Helper function to generate document ID
@@ -225,7 +227,11 @@ app.post('/api/documents/upload', upload.single('document'), async (req, res) =>
     // Insert a document record into MongoDB
     const document = new Document({
       _id: documentId,
-      fileUrl: tempFilePath, // Using tempFilePath as fileUrl since that's what the model expects
+      fileUrl: tempFilePath, // Store the temp file path
+      fileName: req.file.originalname,
+      fileType: req.file.mimetype,
+      fileSize: req.file.size,
+      tempFilePath: tempFilePath,
       status: 'processing'
     });
 
@@ -272,33 +278,8 @@ app.get('/api/status', (req, res) => {
   res.json({ status: 'OK', message: 'Document Intelligence API is running' });
 });
 
-// Get all documents endpoint
-app.get('/api/documents', async (req, res) => {
-  try {
-    const documents = await Document.find().sort({ createdAt: -1 });
-    res.json(documents);
-  } catch (error) {
-    console.error('Get documents error:', error);
-    res.status(500).json({ error: 'Failed to fetch documents' });
-  }
-});
-
-// Get single document endpoint
-app.get('/api/documents/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const document = await Document.findById(id);
-    
-    if (!document) {
-      return res.status(404).json({ error: 'Document not found' });
-    }
-    
-    res.json(document);
-  } catch (error) {
-    console.error('Get document error:', error);
-    res.status(500).json({ error: 'Failed to fetch document' });
-  }
-});
+// Use documents routes
+app.use('/api/documents', require('./routes/documents'));
 
 // Document status check endpoint
 app.get('/api/documents/:documentId/status', async (req, res) => {

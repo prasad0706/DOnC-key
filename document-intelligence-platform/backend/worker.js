@@ -16,7 +16,9 @@ mongoose.connect(process.env.MONGODB_URI)
   });
 
 // Initialize Redis connection
-const redisConnection = new IORedis(process.env.REDIS_URL);
+const redisConnection = new IORedis(process.env.REDIS_URL, {
+  maxRetriesPerRequest: null,
+});
 
 // Test Redis connection
 redisConnection.ping().then(() => {
@@ -40,7 +42,7 @@ const worker = new Worker('documentProcessing', async job => {
     }
 
     // Step 2: Determine how to process the document (URL or file path)
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.0-pro' });
     let aiOutput;
 
     if (job.data.fileUrl) {

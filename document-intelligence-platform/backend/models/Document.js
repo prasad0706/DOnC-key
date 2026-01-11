@@ -1,37 +1,48 @@
 const mongoose = require('mongoose');
 
-const documentSchema = new mongoose.Schema({
-  _id: {
-    type: String,
-    required: true
+const documentSchema = new mongoose.Schema(
+  {
+    _id: {
+      type: String,
+      required: true
+    },
+    fileUrl: {
+      type: String,
+      required: false  // Making it not required since we use tempFilePath
+    },
+    fileName: {
+      type: String,
+      required: false
+    },
+    fileType: {
+      type: String,
+      required: false
+    },
+    fileSize: {
+      type: Number,
+      required: false
+    },
+    status: {
+      type: String,
+      enum: ['processing', 'ready', 'failed'],
+      default: 'processing'
+    },
+    tempFilePath: {
+      type: String,
+      required: false
+    },
+    error: {
+      type: String,
+      default: null
+    }
   },
-  fileUrl: {
-    type: String,
-    required: true
-  },
-  status: {
-    type: String,
-    enum: ['processing', 'ready', 'failed'],
-    default: 'processing'
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
-  },
-  error: {
-    type: String,
-    default: null
+  {
+    timestamps: true, // 🔥 THIS FIXES "Invalid Date"
   }
-});
+);
 
-documentSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
-});
+// No need for manual timestamp updates since we're using timestamps: true
+// Mongoose will automatically handle createdAt and updatedAt
 
 const Document = mongoose.model('Document', documentSchema);
 
