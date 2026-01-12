@@ -71,33 +71,7 @@ function generateApiKey() {
 
 
 // PHASE 1 — UPLOAD & QUEUE (ASYNC HAND-OFF)
-// STEP 1 — Receive File URL (NO FILE UPLOADS HERE)
-app.post('/api/documents/register', async (req, res) => {
-  try {
-    const { fileUrl, fileName, fileType, fileSize } = req.body;
 
-    if (!fileUrl) {
-      return res.status(400).json({ error: 'fileUrl required' });
-    }
-
-    const documentId = generateDocumentId();
-
-    const document = await Document.create({
-      _id: documentId,
-      fileUrl,
-      fileName,
-      fileType,
-      fileSize,
-      status: 'queued'
-    });
-
-    res.status(201).json(document);
-
-  } catch (error) {
-    console.error('Document registration error:', error);
-    res.status(500).json({ error: 'Failed to register document' });
-  }
-});
 
 // PHASE 3 — SECURITY (API KEY CEREMONY)
 // STEP 6 — Generate API Key (USER-ACTION)
@@ -434,23 +408,6 @@ app.get('/api/documents', async (req, res) => {
   }
 });
 
-// Get single document endpoint
-app.get('/api/documents/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const document = await Document.findById(id);
-    
-    if (!document) {
-      return res.status(404).json({ error: 'Document not found' });
-    }
-    
-    res.json(document);
-  } catch (error) {
-    console.error('Get document error:', error);
-    res.status(500).json({ error: 'Failed to fetch document' });
-  }
-});
-
 // Document status check endpoint
 app.get('/api/documents/:documentId/status', async (req, res) => {
   try {
@@ -501,6 +458,9 @@ app.delete('/api/admin/cleanup-documents', async (req, res) => {
     res.status(500).json({ error: 'Failed to cleanup documents' });
   }
 });
+
+// Use documents routes
+app.use('/api/documents', require('./routes/documents'));
 
 // Endpoint to clear all documents (for debugging)
 app.delete('/api/admin/clear-all-documents', async (req, res) => {
