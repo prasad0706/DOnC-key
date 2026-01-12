@@ -1,128 +1,69 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import { auth } from '../utils/firebase';
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  sendPasswordResetEmail
-} from 'firebase/auth';
+import { createContext, useContext, useState } from 'react';
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [useFirebase, setUseFirebase] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Firebase authentication functions with fallback to mock
+  // Mock authentication functions
   const signup = async (email, password) => {
-    try {
-      if (useFirebase) {
-        return await createUserWithEmailAndPassword(auth, email, password);
-      }
-    } catch (firebaseError) {
-      console.warn('Firebase authentication failed, falling back to mock:', firebaseError.message);
-      setUseFirebase(false);
-    }
+    console.warn("🔥 MOCK SIGNUP ACTIVE — Firebase DISABLED");
+    console.log("Mock user:", email);
 
-    // Fallback to mock authentication
-    console.log('Using mock signup for:', email);
-    setCurrentUser({
-      uid: 'mock-' + Date.now(),
+    const mockUser = {
+      uid: "mock-user-" + Date.now(),
       email,
-      displayName: email.split('@')[0]
-    });
-    return Promise.resolve();
+      name: email.split("@")[0],
+    };
+
+    setCurrentUser(mockUser);
+    setIsAuthenticated(true);
+
+    return { success: true };
   };
 
   const login = async (email, password) => {
-    try {
-      if (useFirebase) {
-        return await signInWithEmailAndPassword(auth, email, password);
-      }
-    } catch (firebaseError) {
-      console.warn('Firebase authentication failed, falling back to mock:', firebaseError.message);
-      setUseFirebase(false);
-    }
+    console.warn("🔥 MOCK LOGIN ACTIVE — Firebase DISABLED");
+    console.log("Mock user:", email);
 
-    // Fallback to mock authentication
-    console.log('Using mock login for:', email);
-    setCurrentUser({
-      uid: 'mock-' + Date.now(),
+    const mockUser = {
+      uid: "mock-user-001",
       email,
-      displayName: email.split('@')[0]
-    });
-    return Promise.resolve();
+      name: email.split("@")[0],
+    };
+
+    setCurrentUser(mockUser);
+    setIsAuthenticated(true);
+
+    return { success: true };
   };
 
   const logout = async () => {
-    try {
-      if (useFirebase) {
-        await signOut(auth);
-      }
-    } catch (firebaseError) {
-      console.warn('Firebase logout failed:', firebaseError.message);
-    }
-
+    console.warn("🔥 MOCK LOGOUT ACTIVE — Firebase DISABLED");
     setCurrentUser(null);
-    return Promise.resolve();
+    setIsAuthenticated(false);
+    return { success: true };
   };
 
   const resetPassword = async (email) => {
-    try {
-      if (useFirebase) {
-        return await sendPasswordResetEmail(auth, email);
-      }
-    } catch (firebaseError) {
-      console.warn('Firebase password reset failed, falling back to mock:', firebaseError.message);
-      setUseFirebase(false);
-    }
-
+    console.warn("🔥 MOCK PASSWORD RESET ACTIVE — Firebase DISABLED");
     console.log('Mock password reset for:', email);
-    return Promise.resolve();
+    return { success: true };
   };
-
-  useEffect(() => {
-    try {
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
-        if (user) {
-          setCurrentUser(user);
-        } else if (!useFirebase) {
-          // If Firebase fails and we're using mock, set a mock user for testing
-          setCurrentUser({
-            uid: 'mock-user',
-            email: 'test@example.com',
-            displayName: 'Test User'
-          });
-        }
-        setLoading(false);
-      });
-
-      return () => unsubscribe();
-    } catch (error) {
-      console.warn('Firebase auth state change failed, using mock:', error.message);
-      setUseFirebase(false);
-      setCurrentUser({
-        uid: 'mock-user',
-        email: 'test@example.com',
-        displayName: 'Test User'
-      });
-      setLoading(false);
-    }
-  }, [useFirebase]);
 
   const value = {
     currentUser,
     login,
     signup,
     logout,
-    resetPassword
+    resetPassword,
+    isAuthenticated
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 }
