@@ -13,10 +13,95 @@ const Document = require('./models/Document');
 const ApiKey = require('./models/ApiKey');
 const DocumentData = require('./models/DocumentData');
 const ApiUsage = require('./models/ApiUsage');
+const { Queue } = require('bullmq');
+const IORedis = require('ioredis');
 
-// Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Skip Redis entirely for demo and use mock queue directly
+const jobQueue = [];
+
+const documentQueue = {
+  add: async (name, data) => {
+    const jobId = Math.random().toString();
+    const job = {
+      id: jobId,
+      name,
+      data,
+      timestamp: Date.now()
+    };
+    
+    jobQueue.push(job);
+    console.log(`Job added to queue: ${name} for document ${data.documentId}`);
+    
+    // Process the job asynchronously
+    setTimeout(() => processJob(job), 100);
+    
+    return { id: jobId };
+  }
+};
+
+// Job processor function (simulates what worker.js would do)
+async function processJob(job) {
+  if (job.name === 'process-document') {
+    try {
+      console.log(`Processing document ${job.data.documentId}`);
+      
+      const Document = require('./models/Document');
+      const DocumentData = require('./models/DocumentData');
+      
+      // Update status to processing
+      await Document.findByIdAndUpdate(job.data.documentId, { 
+        status: 'processing',
+        updatedAt: new Date()
+      });
+      
+      console.log(`Document ${job.data.documentId} status updated to processing`);
+      
+      // Simulate processing delay
+      setTimeout(async () => {
+        try {
+          // In a real system, this would call Gemini here
+          // For demo, we'll create mock processed data
+          const mockProcessedData = {
+            rawText: `Mock processed content for document ${job.data.documentId}. This simulates the result of AI processing.`,
+            summary: `Summary of document ${job.data.documentId}`,
+            keyPoints: [`Key point 1 from ${job.data.documentId}`, `Key point 2 from ${job.data.documentId}`]
+          };
+          
+          // Save processed data
+          await DocumentData.create({
+            documentId: job.data.documentId,
+            data: mockProcessedData
+          });
+          
+          // Update status to ready
+          await Document.findByIdAndUpdate(job.data.documentId, { 
+            status: 'ready',
+            processedAt: new Date(),
+            updatedAt: new Date()
+          });
+          
+          console.log(`Document ${job.data.documentId} processed successfully and marked as ready`);
+        } catch (processError) {
+          console.error(`Error processing document ${job.data.documentId}:`, processError);
+          
+          // Update status to failed
+          await Document.findByIdAndUpdate(job.data.documentId, { 
+            status: 'failed', 
+            error: processError.message,
+            updatedAt: new Date()
+          });
+        }
+      }, 3000); // Simulate processing time
+    } catch (error) {
+      console.error('Error in job processing:', error);
+    }
+  }
+}
+
+// Initialize Express app
 
 // Middleware
 app.use(cors({
@@ -305,7 +390,7 @@ app.post('/api/documents/upload', upload.single('document'), async (req, res) =>
       fileType: req.file.mimetype,
       fileSize: req.file.size,
       tempFilePath: tempFilePath,
-      status: 'processing'
+      status: 'queued'
     });
 
     try {
@@ -319,66 +404,26 @@ app.post('/api/documents/upload', upload.single('document'), async (req, res) =>
       return res.status(500).json({ error: 'Failed to save document record' });
     }
 
-    // Process the document immediately instead of queuing
+    // Push to queue for processing
     try {
-      // Initialize Google Generative AI with your API key
-      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-      
-      // Read the file content
-      const fileBuffer = fs.readFileSync(tempFilePath);
-      const mimeType = req.file.mimetype;
-      
-      // Prepare file part for Gemini
-      const filePart = {
-        inlineData: {
-          data: fileBuffer.toString('base64'),
-          mimeType: mimeType
-        }
-      };
-      
-      // Generate content using the file
-      const prompt = "Analyze this document and provide a detailed summary, key points, and insights:";
-      const result = await model.generateContent({
-        contents: [
-          {
-            role: 'user',
-            parts: [
-              { text: prompt },
-              filePart
-            ]
-          }
-        ]
+      await documentQueue.add('process-document', {
+        documentId,
+        filePath: tempFilePath,
+        fileName: req.file.originalname
       });
-      const response = await result.response;
-      const aiOutput = response.text();
-      
-      // Update document status to ready and save AI output
-      await Document.findByIdAndUpdate(documentId, { 
-        status: 'ready',
-        processedAt: new Date()
-      });
-      
-      // Save the processed data
-      const documentData = new DocumentData({
-        documentId: documentId,
-        extractedText: aiOutput,
-        analysis: aiOutput
-      });
-      await documentData.save();
-      
-    } catch (processError) {
-      console.error('Error processing document:', processError);
-      // Update document status to failed if processing fails
+    } catch (queueError) {
+      console.error('Error adding to queue:', queueError);
+      // Update document status to failed if queue fails
       await Document.findByIdAndUpdate(documentId, { 
         status: 'failed', 
-        error: processError.message || 'Failed to process document with AI' 
+        error: queueError.message || 'Failed to add document to processing queue' 
       });
+      return res.status(500).json({ error: 'Failed to add document to processing queue' });
     }
 
-    res.status(200).json({
-      message: 'Document uploaded and processed',
-      status: 'processed',
+    res.status(202).json({
+      message: 'Document uploaded and queued for processing',
+      status: 'queued',
       documentId: documentId,
       documentName: req.file.originalname
     });
@@ -460,7 +505,8 @@ app.delete('/api/admin/cleanup-documents', async (req, res) => {
 });
 
 // Use documents routes
-app.use('/api/documents', require('./routes/documents'));
+const documentsRoutes = require('./routes/documents');
+app.use('/api/documents', documentsRoutes.initializeRouter(documentQueue, generateDocumentId));
 
 // Endpoint to clear all documents (for debugging)
 app.delete('/api/admin/clear-all-documents', async (req, res) => {

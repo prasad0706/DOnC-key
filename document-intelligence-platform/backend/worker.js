@@ -42,7 +42,7 @@ const worker = new Worker('documentProcessing', async job => {
     }
 
     // Step 2: Determine how to process the document (URL or file path)
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.0-pro' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     let aiOutput;
 
     if (job.data.fileUrl) {

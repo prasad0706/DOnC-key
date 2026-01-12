@@ -1,6 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const Document = require('../models/Document');
+let documentQueue;
+let generateDocumentId;
+
+// Function to initialize the router with the queue
+function initializeRouter(queue, genDocIdFn) {
+  documentQueue = queue;
+  generateDocumentId = genDocIdFn;
+  return router;
+}
 
 // GET ALL DOCUMENTS
 router.get('/', async (req, res) => {
@@ -22,9 +31,9 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'fileUrl required' });
     }
 
-    const documentId = `doc_${Date.now()}`;
+    const documentId = generateDocumentId();
 
-    const doc = await Document.create({
+    await Document.create({
       _id: documentId,
       fileUrl,
       fileName,
@@ -33,7 +42,17 @@ router.post('/register', async (req, res) => {
       status: 'queued'
     });
 
-    res.status(201).json(doc);
+    // Add to queue for processing
+    await documentQueue.add('process-document', {
+      documentId,
+      fileUrl,
+      fileName
+    });
+
+    res.status(202).json({
+      processing_id: documentId,
+      status: 'queued'
+    });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Register failed' });
@@ -47,4 +66,6 @@ router.get('/:id', async (req, res) => {
   res.json(doc);
 });
 
-module.exports = router;
+module.exports = {
+  initializeRouter
+};
