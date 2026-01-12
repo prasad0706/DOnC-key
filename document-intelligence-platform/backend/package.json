@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "bcryptjs": "^3.0.3",
     "bullmq": "^4.10.0",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",

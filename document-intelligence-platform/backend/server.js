@@ -2,15 +2,17 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const { Queue } = require('bullmq');
-const IORedis = require('ioredis');
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const mime = require('mime-types');
 const Document = require('./models/Document');
 const ApiKey = require('./models/ApiKey');
 const DocumentData = require('./models/DocumentData');
+const ApiUsage = require('./models/ApiUsage');
 
 // Initialize Express app
 const app = express();
@@ -56,12 +58,6 @@ mongoose.connect(process.env.MONGODB_URI)
     process.exit(1);
   });
 
-// Redis connection for BullMQ
-const redisConnection = new IORedis(process.env.REDIS_URL, {
-  maxRetriesPerRequest: null,
-});
-const documentQueue = new Queue('documentProcessing', { connection: redisConnection });
-
 // Helper function to generate document ID
 function generateDocumentId() {
   return 'doc_' + Math.floor(1000 + Math.random() * 9000);
@@ -72,45 +68,30 @@ function generateApiKey() {
   return 'sk-live-' + crypto.randomBytes(16).toString('hex');
 }
 
-// Helper function to hash API key using SHA-256
-function hashApiKey(apiKey) {
-  return crypto.createHash('sha256').update(apiKey).digest('hex');
-}
+
 
 // PHASE 1 — UPLOAD & QUEUE (ASYNC HAND-OFF)
 // STEP 1 — Receive File URL (NO FILE UPLOADS HERE)
 app.post('/api/documents/register', async (req, res) => {
   try {
-    const { fileUrl } = req.body;
+    const { fileUrl, fileName, fileType, fileSize } = req.body;
 
-    // Validate URL format
-    if (!fileUrl || typeof fileUrl !== 'string' || !fileUrl.startsWith('http')) {
-      return res.status(400).json({ error: 'Invalid file URL format' });
+    if (!fileUrl) {
+      return res.status(400).json({ error: 'fileUrl required' });
     }
 
-    // Generate a documentId
     const documentId = generateDocumentId();
 
-    // Insert a document record into MongoDB
-    const document = new Document({
+    const document = await Document.create({
       _id: documentId,
       fileUrl,
-      status: 'processing'
-    });
-
-    await document.save();
-
-    // STEP 2 — Queue the Job (MANDATORY)
-    await documentQueue.add('process-document', {
-      documentId,
-      fileUrl
-    });
-
-    // Return immediately - NEVER call Gemini here
-    res.status(202).json({
-      processing_id: documentId,
+      fileName,
+      fileType,
+      fileSize,
       status: 'queued'
     });
+
+    res.status(201).json(document);
 
   } catch (error) {
     console.error('Document registration error:', error);
@@ -130,9 +111,16 @@ app.post('/api/documents/:documentId/api-keys', async (req, res) => {
       return res.status(404).json({ error: 'Document not found' });
     }
 
+    // Check if document is ready
+    if (document.status !== 'ready') {
+      return res.status(400).json({ error: 'Document not ready' });
+    }
+
     // Generate a random API key
-    const apiKey = generateApiKey();
-    const keyHash = hashApiKey(apiKey);
+    const rawKey = `doc_${crypto.randomBytes(24).toString('hex')}`;
+
+    // Hash it with bcrypt
+    const keyHash = await bcrypt.hash(rawKey, 10);
 
     // Store ONLY the hash
     const apiKeyRecord = new ApiKey({
@@ -144,7 +132,8 @@ app.post('/api/documents/:documentId/api-keys', async (req, res) => {
 
     // Return the API key ONCE (plaintext key MUST NEVER be stored)
     res.status(201).json({
-      apiKey
+      apiKey: rawKey,
+      message: 'Store this key securely. It will not be shown again.'
     });
 
   } catch (error) {
@@ -156,33 +145,72 @@ app.post('/api/documents/:documentId/api-keys', async (req, res) => {
 // PHASE 4 — RETRIEVAL (THE PRODUCT)
 // STEP 7 — Data Fetch API
 app.get('/api/v1/data', async (req, res) => {
+  const startTime = Date.now();
+  
   try {
     const apiKey = req.headers['x-api-key'];
 
     if (!apiKey) {
+      const usageRecord = new ApiUsage({
+        documentId: null,
+        endpoint: req.originalUrl,
+        success: false,
+        latency: Date.now() - startTime
+      });
+      await usageRecord.save();
+      
       return res.status(401).json({ error: 'API key required' });
     }
 
-    // STEP 8 — Verification Logic (MANDATORY ORDER)
-    // 1. Hash the provided API key
-    const keyHash = hashApiKey(apiKey);
+    // Find all non-revoked API keys
+    const keys = await ApiKey.find({ revoked: false });
 
-    // 2. Look up hash in MongoDB
-    const apiKeyRecord = await ApiKey.findOne({ keyHash });
-    if (!apiKeyRecord) {
-      return res.status(401).json({ error: 'Invalid API key' });
+    let matchedKey = null;
+    for (const key of keys) {
+      const isMatch = await bcrypt.compare(apiKey, key.keyHash);
+      if (isMatch) {
+        matchedKey = key;
+        break;
+      }
     }
 
-    // 3. Resolve documentId
-    const documentId = apiKeyRecord.documentId;
+    if (!matchedKey) {
+      const usageRecord = new ApiUsage({
+        documentId: null,
+        endpoint: req.originalUrl,
+        success: false,
+        latency: Date.now() - startTime
+      });
+      await usageRecord.save();
+      
+      return res.status(403).json({ error: 'Invalid API key' });
+    }
 
-    // STEP 9 — Response
+    const documentId = matchedKey.documentId;
+
     // Fetch document data by documentId
     const documentData = await DocumentData.findOne({ documentId });
 
     if (!documentData) {
+      const usageRecord = new ApiUsage({
+        documentId,
+        endpoint: req.originalUrl,
+        success: false,
+        latency: Date.now() - startTime
+      });
+      await usageRecord.save();
+      
       return res.status(404).json({ error: 'Document data not found' });
     }
+
+    // Record successful usage
+    const usageRecord = new ApiUsage({
+      documentId,
+      endpoint: req.originalUrl,
+      success: true,
+      latency: Date.now() - startTime
+    });
+    await usageRecord.save();
 
     // Return JSON exactly as stored - NO modification, NO AI calls here
     res.json({
@@ -194,6 +222,77 @@ app.get('/api/v1/data', async (req, res) => {
     console.error('Data retrieval error:', error);
     res.status(500).json({ error: 'Failed to retrieve document data' });
   }
+});
+
+// API key verification middleware
+async function verifyApiKey(req, res, next) {
+  const startTime = Date.now();
+  const apiKey = req.headers['x-api-key'];
+  
+  if (!apiKey) {
+    const usageRecord = new ApiUsage({
+      documentId: null,
+      endpoint: req.originalUrl,
+      success: false,
+      latency: Date.now() - startTime
+    });
+    await usageRecord.save();
+    
+    return res.status(401).json({ error: 'API key required' });
+  }
+
+  const keys = await ApiKey.find({ revoked: false });
+
+  let matchedKey = null;
+  for (const key of keys) {
+    const isMatch = await bcrypt.compare(apiKey, key.keyHash);
+    if (isMatch) {
+      matchedKey = key;
+      break;
+    }
+  }
+
+  if (!matchedKey) {
+    const usageRecord = new ApiUsage({
+      documentId: null,
+      endpoint: req.originalUrl,
+      success: false,
+      latency: Date.now() - startTime
+    });
+    await usageRecord.save();
+    
+    return res.status(403).json({ error: 'Invalid API key' });
+  }
+
+  req.documentId = matchedKey.documentId;
+  
+  // Record successful usage
+  const usageRecord = new ApiUsage({
+    documentId: req.documentId,
+    endpoint: req.originalUrl,
+    success: true,
+    latency: Date.now() - startTime
+  });
+  await usageRecord.save();
+  
+  return next();
+}
+
+// Protected data extraction endpoint
+app.get('/api/extract/:documentId', verifyApiKey, async (req, res) => {
+  if (req.params.documentId !== req.documentId) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+
+  const data = await DocumentData.findOne({
+    documentId: req.documentId
+  });
+
+  if (!data) {
+    return res.status(404).json({ error: 'No data found' });
+  }
+
+  res.json(data.data);
 });
 
 // Document upload endpoint
@@ -246,23 +345,66 @@ app.post('/api/documents/upload', upload.single('document'), async (req, res) =>
       return res.status(500).json({ error: 'Failed to save document record' });
     }
 
-    // Queue the Job for processing
+    // Process the document immediately instead of queuing
     try {
-      await documentQueue.add('process-document', {
-        documentId,
-        filePath: tempFilePath,
-        fileName: req.file.originalname
+      // Initialize Google Generative AI with your API key
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      
+      // Read the file content
+      const fileBuffer = fs.readFileSync(tempFilePath);
+      const mimeType = req.file.mimetype;
+      
+      // Prepare file part for Gemini
+      const filePart = {
+        inlineData: {
+          data: fileBuffer.toString('base64'),
+          mimeType: mimeType
+        }
+      };
+      
+      // Generate content using the file
+      const prompt = "Analyze this document and provide a detailed summary, key points, and insights:";
+      const result = await model.generateContent({
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              { text: prompt },
+              filePart
+            ]
+          }
+        ]
       });
-    } catch (queueError) {
-      console.error('Error queuing document for processing:', queueError);
-      // Update document status to failed if queueing fails
-      await Document.findByIdAndUpdate(documentId, { status: 'failed', error: 'Failed to queue for processing' });
-      return res.status(500).json({ error: 'Failed to queue document for processing' });
+      const response = await result.response;
+      const aiOutput = response.text();
+      
+      // Update document status to ready and save AI output
+      await Document.findByIdAndUpdate(documentId, { 
+        status: 'ready',
+        processedAt: new Date()
+      });
+      
+      // Save the processed data
+      const documentData = new DocumentData({
+        documentId: documentId,
+        extractedText: aiOutput,
+        analysis: aiOutput
+      });
+      await documentData.save();
+      
+    } catch (processError) {
+      console.error('Error processing document:', processError);
+      // Update document status to failed if processing fails
+      await Document.findByIdAndUpdate(documentId, { 
+        status: 'failed', 
+        error: processError.message || 'Failed to process document with AI' 
+      });
     }
 
-    res.status(202).json({
-      message: 'Document uploaded and processing started',
-      status: 'queued',
+    res.status(200).json({
+      message: 'Document uploaded and processed',
+      status: 'processed',
       documentId: documentId,
       documentName: req.file.originalname
     });
@@ -279,7 +421,35 @@ app.get('/api/status', (req, res) => {
 });
 
 // Use documents routes
-app.use('/api/documents', require('./routes/documents'));
+
+
+// Get all documents endpoint
+app.get('/api/documents', async (req, res) => {
+  try {
+    const documents = await Document.find().sort({ createdAt: -1 });
+    res.json(documents);
+  } catch (error) {
+    console.error('Get documents error:', error);
+    res.status(500).json({ error: 'Failed to fetch documents' });
+  }
+});
+
+// Get single document endpoint
+app.get('/api/documents/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const document = await Document.findById(id);
+    
+    if (!document) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+    
+    res.json(document);
+  } catch (error) {
+    console.error('Get document error:', error);
+    res.status(500).json({ error: 'Failed to fetch document' });
+  }
+});
 
 // Document status check endpoint
 app.get('/api/documents/:documentId/status', async (req, res) => {
@@ -363,29 +533,13 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// Function to start server with dynamic port assignment
-function startServer(port) {
-  const server = app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-  });
+// Start the server on a fixed port
+const server = app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
 
-  server.on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
-      console.log(`Port ${port} is busy, trying ${parseInt(port) + 1}...`);
-      if (port < PORT + 10) { // Try up to 10 ports
-        setTimeout(() => {
-          startServer(parseInt(port) + 1);
-        }, 1000);
-      } else {
-        console.error(`Could not find an available port after trying ${PORT} through ${PORT + 10}`);
-      }
-    } else {
-      console.error('Server error:', err);
-    }
-  });
-}
-
-// Start the server with dynamic port assignment
-startServer(PORT);
+server.on('error', (err) => {
+  console.error('Server error:', err);
+});
 
 console.log('Document Intelligence API Server starting...');

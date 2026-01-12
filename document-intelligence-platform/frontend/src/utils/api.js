@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5003/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 // Create axios instance
 const api = axios.create({
@@ -37,17 +37,42 @@ export const uploadDocument = async (file) => {
 export const getDocuments = async () => {
   try {
     const response = await api.get('/documents');
-    return response.data;
+    // Transform backend data to match frontend expectations
+    const transformedData = response.data.map(doc => ({
+      ...doc,
+      id: doc._id,
+      name: doc.fileName || doc._id,
+      size: formatFileSize(doc.fileSize),
+      uploadedAt: doc.createdAt,
+    }));
+    return transformedData;
   } catch (error) {
     console.error('Get documents error:', error);
     throw error;
   }
 };
 
+// Helper function to format file size
+function formatFileSize(bytes) {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
 export const getDocumentDetail = async (documentId) => {
   try {
     const response = await api.get(`/documents/${documentId}`);
-    return response.data;
+    // Transform backend data to match frontend expectations
+    const doc = response.data;
+    return {
+      ...doc,
+      id: doc._id,
+      name: doc.fileName || doc._id,
+      size: formatFileSize(doc.fileSize),
+      uploadedAt: doc.createdAt,
+    };
   } catch (error) {
     console.error('Get document detail error:', error);
     throw error;
