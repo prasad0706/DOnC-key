@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { DocumentTextIcon } from '@heroicons/react/24/outline';
+import OAuth from '../components/OAuth';
 
 const Signup = () => {
   const [email, setEmail] = useState('');
@@ -127,6 +128,10 @@ const Signup = () => {
             {loading ? 'Creating account...' : 'Sign up'}
           </button>
         </form>
+
+        <div className="mt-4">
+          <OAuth />
+        </div>
 
         <div className="mt-6 text-center">
           <p className="text-sm">

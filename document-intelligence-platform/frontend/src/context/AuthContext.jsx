@@ -52,12 +52,29 @@ export function AuthProvider({ children }) {
     return { success: true };
   };
 
+  const googleLogin = async (user) => {
+    console.log("Google Login User:", user.email);
+
+    const googleUser = {
+      uid: user.uid,
+      email: user.email,
+      name: user.displayName || user.email.split("@")[0],
+      photoURL: user.photoURL,
+      provider: 'google'
+    };
+
+    setCurrentUser(googleUser);
+    setIsAuthenticated(true);
+    return { success: true };
+  };
+
   const value = {
     currentUser,
     login,
     signup,
     logout,
     resetPassword,
+    googleLogin,
     isAuthenticated
   };
 
