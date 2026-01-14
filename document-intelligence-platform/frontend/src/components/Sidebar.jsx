@@ -67,9 +67,6 @@ const Sidebar = () => {
                 <div className="bg-blue-600 p-1.5 rounded-lg">
                   <DocumentTextIcon className="h-6 w-6 text-white" />
                 </div>
-                <span className={`text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-600`}>
-                  DocIntel
-                </span>
               </div>
             )}
 
@@ -119,8 +116,8 @@ const Sidebar = () => {
         <button
           onClick={toggleTheme}
           className={`w-full flex items-center px-3 py-2 rounded-xl text-sm font-medium mb-2 transition-colors ${theme === 'dark'
-              ? 'text-gray-400 hover:bg-gray-800 hover:text-white'
-              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+            ? 'text-gray-400 hover:bg-gray-800 hover:text-white'
+            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
             }`}
         >
           {theme === 'dark' ? (
@@ -140,8 +137,8 @@ const Sidebar = () => {
         <button
           onClick={logout}
           className={`w-full flex items-center px-3 py-2 rounded-xl text-sm font-medium transition-colors ${theme === 'dark'
-              ? 'text-gray-400 hover:bg-red-500/10 hover:text-red-400'
-              : 'text-gray-600 hover:bg-red-50 hover:text-red-600'
+            ? 'text-gray-400 hover:bg-red-500/10 hover:text-red-400'
+            : 'text-gray-600 hover:bg-red-50 hover:text-red-600'
             }`}
         >
           <ArrowLeftOnRectangleIcon className={`h-5 w-5 ${isCollapsed ? 'mx-auto' : 'mr-3'}`} />

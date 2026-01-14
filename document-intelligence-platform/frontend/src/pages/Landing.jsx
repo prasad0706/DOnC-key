@@ -12,9 +12,6 @@ const Landing = () => {
             <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center">
               <DocumentTextIcon className="h-6 w-6 text-white" />
             </div>
-            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-              DocIntel
-            </span>
           </div>
           <nav className="hidden md:flex space-x-8">
             <a href="#features" className="text-gray-600 hover:text-blue-600 transition-colors">Features</a>
@@ -37,11 +34,11 @@ const Landing = () => {
             <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
               Our AI-powered document intelligence platform extracts, analyzes, and transforms complex documents into structured data with unprecedented accuracy and speed.
             </p>
-            
+
             {/* Unique Get Started Button */}
             <div className="relative inline-block group">
-              <Link 
-                to="/login" 
+              <Link
+                to="/login"
                 className="relative inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-full overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
               >
                 <span className="relative z-10 flex items-center">
@@ -158,8 +155,8 @@ const Landing = () => {
             Join thousands of professionals who are already leveraging AI-powered document intelligence.
           </p>
           <div className="relative inline-block group">
-            <Link 
-              to="/login" 
+            <Link
+              to="/login"
               className="relative inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-full overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
             >
               <span className="relative z-10 flex items-center">
