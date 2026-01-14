@@ -111,7 +111,7 @@ app.use(cors({
     // Allow localhost for development
     if (origin.includes('localhost')) return callback(null, true);
     // Allow production domain
-    if (origin === 'https://donc-key.onrender.com') return callback(null, true);
+    if (origin === 'https://d-on-c-key.vercel.app') return callback(null, true);
     // For production, you would add your production domain here
     callback(null, false);
   },
