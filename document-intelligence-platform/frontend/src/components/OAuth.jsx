@@ -1,6 +1,3 @@
-
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { auth } from '../utils/firebase';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { FcGoogle } from 'react-icons/fc';
@@ -11,41 +8,16 @@ export default function OAuth() {
 
     const handleGoogleClick = async () => {
         try {
-            const provider = new GoogleAuthProvider();
-            // Using the exported auth from ../utils/firebase which already handles initialization
-            const result = await signInWithPopup(auth, provider);
-
-            // Backend integration logic would go here.
-            // Since the backend does not currently support google auth endpoints,
-            // we are using the context to handle the user session client-side.
-
-            /* 
-            // Original logic for backend sync:
-            const res = await fetch('/api/auth/google', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                name: result.user.displayName,
-                email: result.user.email,
-                photo: result.user.photoURL,
-              }),
-            });
-            const data = await res.json();
-            */
-
-            // Directly updating auth context state
-            await googleLogin(result.user);
+            await googleLogin();
             navigate('/dashboard');
         } catch (error) {
-            if (error.code === 'auth/operation-not-allowed') {
-                alert('Google Sign-In is not enabled in Firebase Console. Please enable it in Authentication > Sign-in method.');
-                console.error('Firebase Error: Google provider is disabled in the Firebase Console.');
-            } else if (error.name === 'SecurityError' || error.message.includes('cross-origin')) {
-                console.log('Cross-origin error occurred. This is a browser security restriction.');
+            console.error('Google Sign-In Error:', error);
+            if (error.code === 'auth/popup-blocked') {
+                alert('Please allow popups for this site to sign in with Google.');
+            } else if (error.code === 'auth/operation-not-allowed') {
+                alert('Google Sign-In is not enabled in Firebase Console.');
             } else {
-                console.log('Could not sign in with google', error);
+                alert('Failed to sign in with Google. Please try again.');
             }
         }
     };

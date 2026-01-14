@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { DocumentTextIcon, CloudArrowUpIcon } from '@heroicons/react/24/outline';
 import { uploadDocument } from '../utils/api';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const UploadDocument = () => {
   const { theme } = useTheme();
@@ -11,6 +11,8 @@ const UploadDocument = () => {
   const [file, setFile] = useState(null);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const projectId = searchParams.get('projectId');
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -42,7 +44,7 @@ const UploadDocument = () => {
       }, 300);
 
       // Actual upload
-      const result = await uploadDocument(file);
+      const result = await uploadDocument(file, projectId);
 
       // Complete progress
       setUploadProgress(100);
@@ -50,12 +52,16 @@ const UploadDocument = () => {
 
       console.log('Upload result:', result);
 
-      // Navigate back to documents after a short delay
+      // Navigate back to documents or project after a short delay
       setTimeout(() => {
         setIsUploading(false);
         setUploadProgress(0);
         setFile(null);
-        navigate('/documents'); // Navigate back to documents page
+        if (projectId) {
+          navigate(`/projects/${projectId}`);
+        } else {
+          navigate('/documents');
+        }
       }, 2000);
 
     } catch (error) {
@@ -112,22 +118,20 @@ const UploadDocument = () => {
           />
           <label
             htmlFor="document-upload"
-            className={`flex-1 px-4 py-2 border rounded-md cursor-pointer transition-colors ${
-              theme === 'dark' 
-                ? (isUploading ? 'border-gray-600 bg-gray-700 text-gray-400' : 'border-gray-600 bg-gray-700 text-white hover:bg-gray-600') 
+            className={`flex-1 px-4 py-2 border rounded-md cursor-pointer transition-colors ${theme === 'dark'
+                ? (isUploading ? 'border-gray-600 bg-gray-700 text-gray-400' : 'border-gray-600 bg-gray-700 text-white hover:bg-gray-600')
                 : (isUploading ? 'border-gray-300 bg-gray-100 text-gray-400' : 'border-gray-300 bg-white text-gray-900 hover:bg-gray-50')
-            }`}
+              }`}
           >
             {file ? file.name : 'Choose a file (PDF, JPG, PNG, GIF)'}
           </label>
           <button
             onClick={handleUpload}
             disabled={!file || isUploading}
-            className={`px-4 py-2 bg-blue-600 text-white rounded-md transition-colors ${
-              (!file || isUploading) 
-                ? 'opacity-50 cursor-not-allowed' 
+            className={`px-4 py-2 bg-blue-600 text-white rounded-md transition-colors ${(!file || isUploading)
+                ? 'opacity-50 cursor-not-allowed'
                 : 'hover:bg-blue-700'
-            }`}
+              }`}
           >
             {isUploading ? 'Uploading...' : 'Upload'}
           </button>

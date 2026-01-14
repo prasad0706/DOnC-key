@@ -52,7 +52,7 @@ function App() {
         <Route path="/documents/:id/api-keys" element={<ApiKeys />} />
         <Route path="/platform-docs" element={<PlatformDocs />} />
         <Route path="/usage" element={<Usage />} />
-        <Route path="/upload" element={<Upload />} />
+        <Route path="/upload" element={<UploadDocument />} />
         <Route path="/projects" element={<Projects />} />
         <Route path="/projects/:id" element={<ProjectDetail />} />
         <Route path="/profile" element={<Profile />} />

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { DocumentTextIcon, KeyIcon, ClockIcon, CheckCircleIcon, XCircleIcon, ArrowLeftIcon, ArrowTopRightOnSquareIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { getProjectDetail } from '../utils/api';
 
 const ProjectDetail = () => {
     const { id } = useParams();
@@ -14,77 +15,9 @@ const ProjectDetail = () => {
     useEffect(() => {
         const fetchProject = async () => {
             try {
-                // Mock data - in a real app, this would be the API call
-                const mockProjects = {
-                    'proj_001': {
-                        id: 'proj_001',
-                        name: 'Financial Reports',
-                        createdAt: '2023-12-15T10:30:00Z',
-                        documents: [
-                            {
-                                id: 'doc_001',
-                                name: 'Invoice_2023_Q4.pdf',
-                                status: 'ready',
-                                uploadedAt: '2023-12-15T10:30:00Z',
-                                size: '2.4 MB',
-                                apiKey: 'docintel_sk_live_abc123def456'
-                            },
-                            {
-                                id: 'doc_002',
-                                name: 'Financial_Report.pdf',
-                                status: 'processing',
-                                uploadedAt: '2023-12-14T14:15:00Z',
-                                size: '1.8 MB',
-                                apiKey: 'docintel_sk_live_ghi789jkl012'
-                            }
-                        ]
-                    },
-                    'proj_002': {
-                        id: 'proj_002',
-                        name: 'Legal Documents',
-                        createdAt: '2023-12-10T09:45:00Z',
-                        documents: [
-                            {
-                                id: 'doc_003',
-                                name: 'Contract_Agreement.docx',
-                                status: 'ready',
-                                uploadedAt: '2023-12-10T09:45:00Z',
-                                size: '5.6 MB',
-                                apiKey: 'docintel_sk_live_mno345pqr678'
-                            }
-                        ]
-                    },
-                    'proj_003': {
-                        id: 'proj_003',
-                        name: 'Product Catalogs',
-                        createdAt: '2023-12-05T16:20:00Z',
-                        documents: [
-                            {
-                                id: 'doc_004',
-                                name: 'Product_Catalog.pdf',
-                                status: 'queued',
-                                uploadedAt: '2023-12-05T16:20:00Z',
-                                size: '3.2 MB',
-                                apiKey: 'docintel_sk_live_stu901vwx234'
-                            },
-                            {
-                                id: 'doc_005',
-                                name: 'User_Manual.pdf',
-                                status: 'failed',
-                                uploadedAt: '2023-12-03T11:10:00Z',
-                                size: '8.1 MB',
-                                apiKey: 'docintel_sk_live_yza567bcd890'
-                            }
-                        ]
-                    }
-                };
-
-                const foundProject = mockProjects[id];
-                if (foundProject) {
-                    setProject(foundProject);
-                } else {
-                    setError('Project not found');
-                }
+                setLoading(true);
+                const data = await getProjectDetail(id);
+                setProject(data);
                 setLoading(false);
             } catch (err) {
                 setError('Failed to fetch project details');
@@ -127,6 +60,7 @@ const ProjectDetail = () => {
     };
 
     const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', {
             year: 'numeric',
@@ -169,6 +103,9 @@ const ProjectDetail = () => {
         );
     }
 
+    // Ensure documents array exists
+    const documents = project.documents || [];
+
     return (
         <div className="p-6">
             {/* Back button */}
@@ -188,11 +125,14 @@ const ProjectDetail = () => {
                         <div>
                             <h1 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{project.name}</h1>
                             <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Created: {formatDate(project.createdAt)}</p>
+                            {project.description && (
+                                <p className={`mt-2 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>{project.description}</p>
+                            )}
                         </div>
                     </div>
                     <div className="flex space-x-3">
                         <Link
-                            to={`/upload`}
+                            to={`/upload?projectId=${project._id}`} // Pass projectId to Upload page
                             className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                         >
                             <PlusIcon className="h-5 w-5 mr-2" />
@@ -206,7 +146,7 @@ const ProjectDetail = () => {
             <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
                 <h2 className={`text-lg font-semibold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Documents in this Project</h2>
 
-                {project.documents.length === 0 ? (
+                {documents.length === 0 ? (
                     <div className={`p-8 text-center rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
                         <DocumentTextIcon className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                         <h3 className={`text-lg font-medium mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>No documents in this project</h3>
@@ -238,12 +178,12 @@ const ProjectDetail = () => {
                                 </tr>
                             </thead>
                             <tbody className={theme === 'dark' ? 'bg-gray-800 divide-y divide-gray-700' : 'bg-white divide-y divide-gray-200'}>
-                                {project.documents.map((doc) => (
-                                    <tr key={doc.id}>
+                                {documents.map((doc) => (
+                                    <tr key={doc._id || doc.id}>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center">
                                                 <DocumentTextIcon className="h-5 w-5 text-blue-500 mr-3" />
-                                                <div className="text-sm font-medium text-gray-900 dark:text-white">{doc.name}</div>
+                                                <div className="text-sm font-medium text-gray-900 dark:text-white">{doc.fileName || doc.name}</div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
@@ -255,17 +195,17 @@ const ProjectDetail = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-500 dark:text-gray-400">{formatDate(doc.uploadedAt)}</div>
+                                            <div className="text-sm text-gray-500 dark:text-gray-400">{formatDate(doc.createdAt || doc.uploadedAt)}</div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-500 dark:text-gray-400">{doc.size}</div>
+                                            <div className="text-sm text-gray-500 dark:text-gray-400">{doc.fileSize ? (doc.fileSize / 1024 / 1024).toFixed(2) + ' MB' : doc.size}</div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-mono text-gray-500 dark:text-gray-400 truncate max-w-xs">{doc.apiKey}</div>
+                                            <div className="text-sm font-mono text-gray-500 dark:text-gray-400 truncate max-w-xs">{doc.apiKey || '-'}</div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <Link
-                                                to={`/documents/${doc.id}`}
+                                                to={`/documents/${doc._id || doc.id}`}
                                                 className="inline-flex items-center px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                                             >
                                                 <ArrowTopRightOnSquareIcon className="h-4 w-4 mr-1" />

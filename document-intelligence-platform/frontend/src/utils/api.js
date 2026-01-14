@@ -11,15 +11,23 @@ const api = axios.create({
 });
 
 // Add auth token to requests
+// Add auth token to requests
 export const setupAuthInterceptor = (token) => {
-  // No-op function for development without authentication
-  console.log('Authentication interceptor setup (not used in dev mode)');
+  if (token) {
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  } else {
+    delete api.defaults.headers.common['Authorization'];
+  }
 };
 
 // Document API
-export const uploadDocument = async (file) => {
+// Document API
+export const uploadDocument = async (file, projectId = null) => {
   const formData = new FormData();
   formData.append('document', file);
+  if (projectId) {
+    formData.append('projectId', projectId);
+  }
 
   try {
     const response = await api.post('/documents/upload', formData, {
@@ -128,6 +136,47 @@ export const getUserProfile = async () => {
     return response.data;
   } catch (error) {
     console.error('Get user profile error:', error);
+    throw error;
+  }
+};
+
+// Projects API
+export const getProjects = async () => {
+  try {
+    const response = await api.get('/projects');
+    return response.data;
+  } catch (error) {
+    console.error('Get projects error:', error);
+    throw error;
+  }
+};
+
+export const createProject = async (data) => {
+  try {
+    const response = await api.post('/projects', data);
+    return response.data;
+  } catch (error) {
+    console.error('Create project error:', error);
+    throw error;
+  }
+};
+
+export const getProjectDetail = async (id) => {
+  try {
+    const response = await api.get(`/projects/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Get project detail error:', error);
+    throw error;
+  }
+};
+
+export const deleteProject = async (id) => {
+  try {
+    const response = await api.delete(`/projects/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Delete project error:', error);
     throw error;
   }
 };

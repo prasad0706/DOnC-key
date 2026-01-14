@@ -1,71 +1,60 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup,
+  onAuthStateChanged
+} from 'firebase/auth';
+import { auth } from '../utils/firebase';
+import { setupAuthInterceptor } from '../utils/api';
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Mock authentication functions
-  const signup = async (email, password) => {
-    console.warn("🔥 MOCK SIGNUP ACTIVE — Firebase DISABLED");
-    console.log("Mock user:", email);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setCurrentUser(user);
+      setIsAuthenticated(!!user);
 
-    const mockUser = {
-      uid: "mock-user-" + Date.now(),
-      email,
-      name: email.split("@")[0],
-    };
+      if (user) {
+        const token = await user.getIdToken();
+        setupAuthInterceptor(token);
+      } else {
+        setupAuthInterceptor(null);
+      }
 
-    setCurrentUser(mockUser);
-    setIsAuthenticated(true);
+      setLoading(false);
+    });
 
-    return { success: true };
+    return unsubscribe;
+  }, []);
+
+  const signup = (email, password) => {
+    return createUserWithEmailAndPassword(auth, email, password);
   };
 
-  const login = async (email, password) => {
-    console.warn("🔥 MOCK LOGIN ACTIVE — Firebase DISABLED");
-    console.log("Mock user:", email);
-
-    const mockUser = {
-      uid: "mock-user-001",
-      email,
-      name: email.split("@")[0],
-    };
-
-    setCurrentUser(mockUser);
-    setIsAuthenticated(true);
-
-    return { success: true };
+  const login = (email, password) => {
+    return signInWithEmailAndPassword(auth, email, password);
   };
 
-  const logout = async () => {
-    console.warn("🔥 MOCK LOGOUT ACTIVE — Firebase DISABLED");
-    setCurrentUser(null);
-    setIsAuthenticated(false);
-    return { success: true };
+  const logout = () => {
+    return signOut(auth);
   };
 
-  const resetPassword = async (email) => {
-    console.warn("🔥 MOCK PASSWORD RESET ACTIVE — Firebase DISABLED");
-    console.log('Mock password reset for:', email);
-    return { success: true };
+  const resetPassword = (email) => {
+    return sendPasswordResetEmail(auth, email);
   };
 
-  const googleLogin = async (user) => {
-    console.log("Google Login User:", user.email);
-
-    const googleUser = {
-      uid: user.uid,
-      email: user.email,
-      name: user.displayName || user.email.split("@")[0],
-      photoURL: user.photoURL,
-      provider: 'google'
-    };
-
-    setCurrentUser(googleUser);
-    setIsAuthenticated(true);
-    return { success: true };
+  const googleLogin = () => {
+    const provider = new GoogleAuthProvider();
+    return signInWithPopup(auth, provider);
   };
 
   const value = {
@@ -75,12 +64,13 @@ export function AuthProvider({ children }) {
     logout,
     resetPassword,
     googleLogin,
-    isAuthenticated
+    isAuthenticated,
+    loading
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 }

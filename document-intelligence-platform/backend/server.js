@@ -14,28 +14,11 @@ const ApiKey = require('./models/ApiKey');
 const DocumentData = require('./models/DocumentData');
 const ApiUsage = require('./models/ApiUsage');
 const { Queue } = require('bullmq');
+// const { Queue } = require('bullmq');
 const IORedis = require('ioredis');
-const admin = require('firebase-admin');
-
-// Initialize Firebase Admin
-try {
-  // Check if already initialized
-  if (!admin.apps.length) {
-    admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') : undefined
-      }),
-      storageBucket: process.env.FIREBASE_STORAGE_BUCKET
-    });
-  }
-  console.log('Firebase Admin initialized locally');
-} catch (error) {
-  console.error('Firebase Admin initialization error:', error);
-}
-
-const bucket = admin.storage().bucket();
+const { bucket } = require('./config/firebase');
+const verifyToken = require('./middleware/auth');
+const Project = require('./models/Project');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -126,18 +109,10 @@ async function processJob(job) {
 
 // Middleware
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    // Allow localhost for development
-    if (origin.includes('localhost')) return callback(null, true);
-    // Allow production domain
-    if (origin === 'https://d-on-c-key.vercel.app') return callback(null, true);
-    // For production, you would add your production domain here
-    callback(null, false);
-  },
+  origin: true, // Allow all origins (reflects the request origin)
   credentials: true
 }));
+app.options('*', cors()); // Enable pre-flight for all routes
 app.use(express.json());
 
 // Multer configuration for file uploads
@@ -408,12 +383,27 @@ app.get('/api/extract/:documentId', verifyApiKey, async (req, res) => {
   res.json(data.data);
 });
 
-// Document upload endpoint
-// Document upload endpoint
-app.post('/api/documents/upload', upload.single('document'), async (req, res) => {
+// Document upload endpoint - Secured
+app.post('/api/documents/upload', verifyToken, upload.single('document'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const { projectId } = req.body;
+
+    // If projectId is provided, verify it belongs to the user
+    if (projectId) {
+      const project = await Project.findOne({ _id: projectId, userId: req.user.uid });
+      if (!project) {
+        return res.status(404).json({ error: 'Project not found or access denied' });
+      }
+    } else {
+      // For now, we might allow uploads without project (generic "My Documents"), 
+      // or we can enforce it. The prompt says "user will create a project in which he can upload documents".
+      // Let's default to requiring it, or handling it gracefully.
+      // For backward compatibility during migration, we'll allow null, 
+      // but in the UI we will enforce project selection.
     }
 
     // Generate a documentId
@@ -430,13 +420,14 @@ app.post('/api/documents/upload', upload.single('document'), async (req, res) =>
           contentType: req.file.mimetype,
           metadata: {
             originalName: req.file.originalname,
-            documentId: documentId
+            documentId: documentId,
+            projectId: projectId || 'none',
+            userId: req.user.uid
           }
         }
       });
 
       // Make the file public or get a signed URL
-      // For this implementation, we will generate a long-lived signed URL
       const [signedUrl] = await file.getSignedUrl({
         action: 'read',
         expires: '03-09-2491' // Long expiration date
@@ -449,8 +440,10 @@ app.post('/api/documents/upload', upload.single('document'), async (req, res) =>
         fileName: req.file.originalname,
         fileType: req.file.mimetype,
         fileSize: req.file.size,
-        tempFilePath: `gs://${bucket.name}/${cleanFileName}`, // Store GS path as reference
-        status: 'queued'
+        tempFilePath: `gs://${bucket.name}/${cleanFileName}`,
+        status: 'queued',
+        projectId: projectId, // Save the association
+        userId: req.user.uid // Associate document with the user
       });
 
       await document.save();
@@ -459,7 +452,7 @@ app.post('/api/documents/upload', upload.single('document'), async (req, res) =>
       await documentQueue.add('process-document', {
         documentId,
         fileUrl: signedUrl,
-        storagePath: cleanFileName, // Pass storage path for worker if needed
+        storagePath: cleanFileName,
         fileName: req.file.originalname
       });
 
@@ -468,7 +461,8 @@ app.post('/api/documents/upload', upload.single('document'), async (req, res) =>
         status: 'queued',
         documentId: documentId,
         documentName: req.file.originalname,
-        fileUrl: signedUrl
+        fileUrl: signedUrl,
+        projectId: projectId
       });
 
     } catch (uploadError) {
@@ -555,6 +549,10 @@ app.delete('/api/admin/cleanup-documents', async (req, res) => {
 // Use documents routes
 const documentsRoutes = require('./routes/documents');
 app.use('/api/documents', documentsRoutes.initializeRouter(documentQueue, generateDocumentId));
+
+// Project routes
+const projectRoutes = require('./routes/projects');
+app.use('/api/projects', projectRoutes);
 
 // Endpoint to clear all documents (for debugging)
 app.delete('/api/admin/clear-all-documents', async (req, res) => {
