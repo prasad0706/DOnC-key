@@ -54,6 +54,8 @@ async function processJob(job) {
 
       const Document = require('./models/Document');
       const DocumentData = require('./models/DocumentData');
+      const { downloadFile, extractText } = require('./utils/fileProcessor');
+      const { generateDocumentSummary } = require('./utils/gemini');
 
       // Update status to processing
       await Document.findByIdAndUpdate(job.data.documentId, {
@@ -63,42 +65,50 @@ async function processJob(job) {
 
       console.log(`Document ${job.data.documentId} status updated to processing`);
 
-      // Simulate processing delay
-      setTimeout(async () => {
-        try {
-          // In a real system, this would call Gemini here
-          // For demo, we'll create mock processed data
-          const mockProcessedData = {
-            rawText: `Mock processed content for document ${job.data.documentId}. This simulates the result of AI processing.`,
-            summary: `Summary of document ${job.data.documentId}`,
-            keyPoints: [`Key point 1 from ${job.data.documentId}`, `Key point 2 from ${job.data.documentId}`]
-          };
+      try {
+        // 1. Download file from Firebase URL
+        console.log(`Downloading file from ${job.data.fileUrl}...`);
+        const fileBuffer = await downloadFile(job.data.fileUrl);
 
-          // Save processed data
-          await DocumentData.create({
-            documentId: job.data.documentId,
-            data: mockProcessedData
-          });
+        // 2. Extract text
+        console.log('Extracting text...');
+        // fileType was saved as mimetype in upload handler
+        const doc = await Document.findById(job.data.documentId);
+        const text = await extractText(fileBuffer, doc.fileType);
 
-          // Update status to ready
-          await Document.findByIdAndUpdate(job.data.documentId, {
-            status: 'ready',
-            processedAt: new Date(),
-            updatedAt: new Date()
-          });
+        console.log(`Extracted ${text.length} characters. Sending to Gemini...`);
 
-          console.log(`Document ${job.data.documentId} processed successfully and marked as ready`);
-        } catch (processError) {
-          console.error(`Error processing document ${job.data.documentId}:`, processError);
+        // 3. Generate Summary with Gemini
+        const processedData = await generateDocumentSummary(text);
 
-          // Update status to failed
-          await Document.findByIdAndUpdate(job.data.documentId, {
-            status: 'failed',
-            error: processError.message,
-            updatedAt: new Date()
-          });
-        }
-      }, 3000); // Simulate processing time
+        // 4. Save processed data to MongoDB
+        await DocumentData.create({
+          documentId: job.data.documentId,
+          data: {
+            ...processedData,
+            rawText: text.substring(0, 5000) + '...' // Store first 5000 chars of raw text for reference
+          }
+        });
+
+        // 5. Update status to ready
+        await Document.findByIdAndUpdate(job.data.documentId, {
+          status: 'ready',
+          processedAt: new Date(),
+          updatedAt: new Date()
+        });
+
+        console.log(`Document ${job.data.documentId} processed successfully and marked as ready`);
+
+      } catch (processError) {
+        console.error(`Error processing document ${job.data.documentId}:`, processError);
+
+        // Update status to failed
+        await Document.findByIdAndUpdate(job.data.documentId, {
+          status: 'failed',
+          error: processError.message,
+          updatedAt: new Date()
+        });
+      }
     } catch (error) {
       console.error('Error in job processing:', error);
     }
@@ -410,11 +420,7 @@ app.post('/api/documents/upload', verifyToken, upload.single('document'), async 
         return res.status(404).json({ error: 'Project not found or access denied' });
       }
     } else {
-      // For now, we might allow uploads without project (generic "My Documents"), 
-      // or we can enforce it. The prompt says "user will create a project in which he can upload documents".
-      // Let's default to requiring it, or handling it gracefully.
-      // For backward compatibility during migration, we'll allow null, 
-      // but in the UI we will enforce project selection.
+      return res.status(400).json({ error: 'Project ID is required. Please select or create a project.' });
     }
 
     // Generate a documentId

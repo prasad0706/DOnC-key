@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTheme } from '../context/ThemeContext';
 import { DocumentTextIcon, PlusIcon, FolderIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
@@ -147,69 +148,69 @@ const Projects = () => {
             )}
 
             {/* Create Project Modal */}
-            {showModal && (
-                <div className="fixed inset-0 z-50 overflow-y-auto">
-                    <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                        <div className="fixed inset-0 transition-opacity" aria-hidden="true" onClick={() => setShowModal(false)}>
-                            <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-                        </div>
-
-                        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-                        <div className={`inline-block align-bottom rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
-                            <div className={`px-4 pt-5 pb-4 sm:p-6 sm:pb-4`}>
-                                <h3 className={`text-lg leading-6 font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-4`}>
-                                    Create New Project
-                                </h3>
-                                <form onSubmit={handleCreateProject}>
-                                    <div className="mb-4">
-                                        <label htmlFor="projectName" className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
-                                            Project Name
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="projectName"
-                                            value={newProjectName}
-                                            onChange={(e) => setNewProjectName(e.target.value)}
-                                            className={`w-full px-3 py-2 rounded-md border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                                            placeholder="e.g., Financial Reports 2024"
-                                            required
-                                        />
-                                    </div>
-                                    <div className="mb-4">
-                                        <label htmlFor="projectDesc" className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
-                                            Description (Optional)
-                                        </label>
-                                        <textarea
-                                            id="projectDesc"
-                                            value={newProjectDesc}
-                                            onChange={(e) => setNewProjectDesc(e.target.value)}
-                                            className={`w-full px-3 py-2 rounded-md border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                                            placeholder="Brief description of this project..."
-                                            rows="3"
-                                        />
-                                    </div>
-                                    <div className="flex justify-end space-x-3 mt-6">
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowModal(false)}
-                                            className={`px-4 py-2 rounded-md border ${theme === 'dark' ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            type="submit"
-                                            disabled={creating}
-                                            className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50`}
-                                        >
-                                            {creating ? 'Creating...' : 'Create Project'}
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
+            {showModal && createPortal(
+                <div
+                    className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/50 backdrop-blur-sm"
+                    onClick={() => setShowModal(false)}
+                >
+                    <div
+                        className={`relative w-full max-w-lg rounded-lg shadow-2xl overflow-hidden ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                            <h3 className={`text-xl leading-6 font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-4`}>
+                                Create New Project
+                            </h3>
+                            <form onSubmit={handleCreateProject}>
+                                <div className="mb-4">
+                                    <label htmlFor="projectName" className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                                        Project Name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="projectName"
+                                        value={newProjectName}
+                                        onChange={(e) => setNewProjectName(e.target.value)}
+                                        className={`w-full px-3 py-2 rounded-md border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                                        placeholder="e.g., Financial Reports 2024"
+                                        required
+                                        autoFocus
+                                    />
+                                </div>
+                                <div className="mb-4">
+                                    <label htmlFor="projectDesc" className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                                        Description (Optional)
+                                    </label>
+                                    <textarea
+                                        id="projectDesc"
+                                        value={newProjectDesc}
+                                        onChange={(e) => setNewProjectDesc(e.target.value)}
+                                        className={`w-full px-3 py-2 rounded-md border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                                        placeholder="Brief description of this project..."
+                                        rows="3"
+                                    />
+                                </div>
+                                <div className="flex justify-end space-x-3 mt-8">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowModal(false)}
+                                        className={`px-4 py-2 rounded-md border ${theme === 'dark' ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={creating}
+                                        className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 font-medium shadow-sm transition-colors`}
+                                    >
+                                        {creating ? 'Creating...' : 'Create Project'}
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

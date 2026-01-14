@@ -59,11 +59,28 @@ router.post('/register', async (req, res) => {
   }
 });
 
+const DocumentData = require('../models/DocumentData');
+
 // GET DOCUMENT BY ID
 router.get('/:id', async (req, res) => {
-  const doc = await Document.findById(req.params.id);
-  if (!doc) return res.status(404).json({ error: 'Not found' });
-  res.json(doc);
+  try {
+    const doc = await Document.findById(req.params.id);
+    if (!doc) return res.status(404).json({ error: 'Not found' });
+
+    // Fetch processed data if it exists
+    const docData = await DocumentData.findOne({ documentId: req.params.id });
+
+    // combine them
+    const response = {
+      ...doc.toObject(),
+      processingResult: docData ? docData.data : null
+    };
+
+    res.json(response);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 module.exports = {

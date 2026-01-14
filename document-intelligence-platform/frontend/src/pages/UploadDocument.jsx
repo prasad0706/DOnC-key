@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
-import { DocumentTextIcon, CloudArrowUpIcon } from '@heroicons/react/24/outline';
-import { uploadDocument } from '../utils/api';
+import { DocumentTextIcon, CloudArrowUpIcon, FolderIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { uploadDocument, getProjects, createProject } from '../utils/api';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const UploadDocument = () => {
@@ -12,7 +12,30 @@ const UploadDocument = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const projectId = searchParams.get('projectId');
+
+  // Project State
+  const [projects, setProjects] = useState([]);
+  const [selectedProjectId, setSelectedProjectId] = useState(searchParams.get('projectId') || '');
+  const [loadingProjects, setLoadingProjects] = useState(false);
+  const [isCreatingProject, setIsCreatingProject] = useState(false);
+  const [newProjectName, setNewProjectName] = useState('');
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        setLoadingProjects(true);
+        const data = await getProjects();
+        setProjects(data);
+
+        // If projectId param exists, verify it exists in fetched projects (optional but good)
+      } catch (err) {
+        console.error("Failed to fetch projects", err);
+      } finally {
+        setLoadingProjects(false);
+      }
+    };
+    fetchProjects();
+  }, []);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -21,9 +44,26 @@ const UploadDocument = () => {
     }
   };
 
+  const handleCreateProject = async () => {
+    if (!newProjectName.trim()) return;
+    try {
+      const newProject = await createProject({ name: newProjectName });
+      setProjects([...projects, newProject]);
+      setSelectedProjectId(newProject._id);
+      setIsCreatingProject(false);
+      setNewProjectName('');
+    } catch (err) {
+      setError('Failed to create project');
+    }
+  };
+
   const handleUpload = async () => {
     if (!file) {
       setError('Please select a file first');
+      return;
+    }
+    if (!selectedProjectId) {
+      setError('Please select a project');
       return;
     }
 
@@ -44,7 +84,7 @@ const UploadDocument = () => {
       }, 300);
 
       // Actual upload
-      const result = await uploadDocument(file, projectId);
+      const result = await uploadDocument(file, selectedProjectId);
 
       // Complete progress
       setUploadProgress(100);
@@ -52,16 +92,12 @@ const UploadDocument = () => {
 
       console.log('Upload result:', result);
 
-      // Navigate back to documents or project after a short delay
+      // Navigate back to project
       setTimeout(() => {
         setIsUploading(false);
         setUploadProgress(0);
         setFile(null);
-        if (projectId) {
-          navigate(`/projects/${projectId}`);
-        } else {
-          navigate('/documents');
-        }
+        navigate(`/projects/${selectedProjectId}`);
       }, 2000);
 
     } catch (error) {
@@ -96,9 +132,68 @@ const UploadDocument = () => {
       )}
 
       <div className={cardClasses}>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-6">
           <h2 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Upload New Document</h2>
           <CloudArrowUpIcon className="h-6 w-6 text-blue-500" />
+        </div>
+
+        {/* Project Selection */}
+        <div className="mb-6">
+          <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+            Project
+          </label>
+
+          {!isCreatingProject ? (
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <select
+                  className={`w-full px-3 py-2 rounded-md border appearance-none ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  value={selectedProjectId}
+                  onChange={(e) => setSelectedProjectId(e.target.value)}
+                  disabled={isUploading}
+                >
+                  <option value="">Select a project...</option>
+                  {projects.map(p => (
+                    <option key={p._id} value={p._id}>{p.name}</option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
+                  <FolderIcon className="h-4 w-4" />
+                </div>
+              </div>
+              <button
+                onClick={() => setIsCreatingProject(true)}
+                className={`px-3 py-2 rounded-md border ${theme === 'dark' ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-600 hover:bg-gray-50'}`}
+                title="Create New Project"
+              >
+                <PlusIcon className="h-5 w-5" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newProjectName}
+                onChange={(e) => setNewProjectName(e.target.value)}
+                placeholder="New Project Name"
+                className={`flex-1 px-3 py-2 rounded-md border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                autoFocus
+              />
+              <button
+                onClick={handleCreateProject}
+                disabled={!newProjectName.trim()}
+                className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+              >
+                Create
+              </button>
+              <button
+                onClick={() => setIsCreatingProject(false)}
+                className={`px-3 py-2 rounded-md border ${theme === 'dark' ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-600 hover:bg-gray-50'}`}
+              >
+                Cancel
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="mb-4">
@@ -119,18 +214,18 @@ const UploadDocument = () => {
           <label
             htmlFor="document-upload"
             className={`flex-1 px-4 py-2 border rounded-md cursor-pointer transition-colors ${theme === 'dark'
-                ? (isUploading ? 'border-gray-600 bg-gray-700 text-gray-400' : 'border-gray-600 bg-gray-700 text-white hover:bg-gray-600')
-                : (isUploading ? 'border-gray-300 bg-gray-100 text-gray-400' : 'border-gray-300 bg-white text-gray-900 hover:bg-gray-50')
+              ? (isUploading ? 'border-gray-600 bg-gray-700 text-gray-400' : 'border-gray-600 bg-gray-700 text-white hover:bg-gray-600')
+              : (isUploading ? 'border-gray-300 bg-gray-100 text-gray-400' : 'border-gray-300 bg-white text-gray-900 hover:bg-gray-50')
               }`}
           >
             {file ? file.name : 'Choose a file (PDF, JPG, PNG, GIF)'}
           </label>
           <button
             onClick={handleUpload}
-            disabled={!file || isUploading}
-            className={`px-4 py-2 bg-blue-600 text-white rounded-md transition-colors ${(!file || isUploading)
-                ? 'opacity-50 cursor-not-allowed'
-                : 'hover:bg-blue-700'
+            disabled={!file || isUploading || !selectedProjectId}
+            className={`px-4 py-2 bg-blue-600 text-white rounded-md transition-colors ${(!file || isUploading || !selectedProjectId)
+              ? 'opacity-50 cursor-not-allowed'
+              : 'hover:bg-blue-700'
               }`}
           >
             {isUploading ? 'Uploading...' : 'Upload'}

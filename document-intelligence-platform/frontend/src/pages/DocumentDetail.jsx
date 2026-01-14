@@ -281,7 +281,7 @@ const DocumentDetail = () => {
       )}
 
       {activeTab === 'structure' && (
-        <StructureTab />
+        <StructureTab document={document} />
       )}
 
       {activeTab === 'api-keys' && (
