@@ -109,7 +109,18 @@ async function processJob(job) {
 
 // Middleware
 app.use(cors({
-  origin: true, // Allow all origins (reflects the request origin)
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    // Allow localhost for development
+    if (origin.includes('localhost')) return callback(null, true);
+    // Allow production domain
+    if (origin === 'https://d-on-c-key.vercel.app') return callback(null, true);
+    if (origin === 'https://d-on-c-key-git-prasad-prasad070606-2627s-projects.vercel.app') return callback(null, true);
+
+    // For production, you would add your production domain here
+    callback(null, false);
+  },
   credentials: true
 }));
 app.options('*', cors()); // Enable pre-flight for all routes
