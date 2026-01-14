@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { DocumentTextIcon, KeyIcon, ChartBarIcon, CloudArrowUpIcon } from '@heroicons/react/24/outline';
 import { uploadDocument, getDocuments } from '../utils/api';
-import { useAuth } from '../context/AuthContext';
 
 const Dashboard = () => {
   const { theme } = useTheme();

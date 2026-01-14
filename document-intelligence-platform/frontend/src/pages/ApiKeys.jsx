@@ -11,44 +11,16 @@ const ApiKeys = () => {
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [generatedKey, setGeneratedKey] = useState(null);
   const [copiedKeyId, setCopiedKeyId] = useState(null);
-
+  
   useEffect(() => {
+    const documentId = window.location.pathname.split('/')[2]; // Extract document ID from URL
+    
     const fetchApiKeys = async () => {
       try {
-        // Mock data - in a real app, this would be the API call
-        const mockKeys = [
-          {
-            id: 'key_abc123',
-            name: 'Production Key',
-            createdAt: '2023-12-01T10:30:00Z',
-            lastUsed: '2023-12-15T14:25:00Z',
-            status: 'active',
-            usageCount: 47
-          },
-          {
-            id: 'key_def456',
-            name: 'Development Key',
-            createdAt: '2023-11-15T09:15:00Z',
-            lastUsed: '2023-12-10T11:40:00Z',
-            status: 'active',
-            usageCount: 12
-          },
-          {
-            id: 'key_ghi789',
-            name: 'Test Key',
-            createdAt: '2023-10-20T14:20:00Z',
-            lastUsed: null,
-            status: 'revoked',
-            usageCount: 3
-          }
-        ];
-
-        setApiKeys(mockKeys);
+        // Real API call to fetch API keys for the specific document
+        const data = await getApiKeys(documentId);
+        setApiKeys(data);
         setLoading(false);
-
-        // Real API call would be:
-        // const data = await getApiKeys();
-        // setApiKeys(data);
       } catch (err) {
         setError('Failed to fetch API keys');
         setLoading(false);
@@ -59,46 +31,34 @@ const ApiKeys = () => {
     fetchApiKeys();
   }, []);
 
+  
   const handleGenerateKey = async () => {
+    const documentId = window.location.pathname.split('/')[2]; // Extract document ID from URL
+    
     try {
-      // Mock key generation
-      const mockKey = {
-        id: 'key_new123',
-        key: 'docintel_sk_live_newkey123456789abcdef',
-        name: 'New API Key',
-        createdAt: new Date().toISOString(),
-        status: 'active',
-        usageCount: 0
-      };
-
-      setGeneratedKey(mockKey);
+      // Real API call to generate API key for the specific document
+      const keyData = await generateApiKey(documentId);
+      setGeneratedKey(keyData);
       setShowGenerateModal(true);
-
-      // Real API call would be:
-      // const key = await generateApiKey();
-      // setGeneratedKey(key);
-      // setShowGenerateModal(true);
     } catch (err) {
       console.error('Error generating API key:', err);
-      // Handle error
+      setError('Failed to generate API key');
     }
   };
 
+  
   const handleRevokeKey = async (keyId) => {
+    const documentId = window.location.pathname.split('/')[2]; // Extract document ID from URL
+    
     try {
-      // Mock revoke
+      // Real API call to revoke the API key
+      await revokeApiKey(documentId, keyId);
       setApiKeys(apiKeys.map(key =>
         key.id === keyId ? { ...key, status: 'revoked' } : key
       ));
-
-      // Real API call would be:
-      // await revokeApiKey(keyId);
-      // setApiKeys(apiKeys.map(key =>
-      //   key.id === keyId ? { ...key, status: 'revoked' } : key
-      // ));
     } catch (err) {
       console.error('Error revoking API key:', err);
-      // Handle error
+      setError('Failed to revoke API key');
     }
   };
 
@@ -263,14 +223,14 @@ const ApiKeys = () => {
                 This is your new API key. Copy it now as it will not be shown again.
               </p>
               <div className={`p-3 rounded-md break-all ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'}`}>
-                {generatedKey.key}
+                {generatedKey.apiKey || generatedKey.key}
               </div>
             </div>
 
             <div className="flex space-x-3">
               <button
                 onClick={() => {
-                  navigator.clipboard.writeText(generatedKey.key);
+                  navigator.clipboard.writeText(generatedKey.apiKey || generatedKey.key);
                   // Show some feedback that it was copied
                 }}
                 className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"

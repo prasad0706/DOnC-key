@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { DocumentTextIcon, ClockIcon, CheckCircleIcon, XCircleIcon, KeyIcon, ArrowLeftIcon, TableCellsIcon, CodeBracketIcon, PlayIcon } from '@heroicons/react/24/outline';
-import { getDocumentDetail, generateApiKey } from '../utils/api';
+import { getDocumentDetail, generateApiKey, getApiKeys } from '../utils/api';
 import StructureTab from '../components/StructureTab';
 import ApiDocsTab from '../components/ApiDocsTab';
 import TryApiTab from '../components/TryApiTab';
@@ -17,6 +17,8 @@ const DocumentDetail = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [generatedKey, setGeneratedKey] = useState(null);
   const [showKeyModal, setShowKeyModal] = useState(false);
+  const [apiKeys, setApiKeys] = useState([]);
+  const [apiKeysLoading, setApiKeysLoading] = useState(false);
 
   useEffect(() => {
     const fetchDocument = async () => {
@@ -34,6 +36,24 @@ const DocumentDetail = () => {
 
     fetchDocument();
   }, [id]);
+
+  // Fetch API keys when the API Keys tab is activated
+  useEffect(() => {
+    if (activeTab === 'api-keys' && id) {
+      const fetchApiKeys = async () => {
+        setApiKeysLoading(true);
+        try {
+          const keys = await getApiKeys(id);
+          setApiKeys(keys);
+        } catch (err) {
+          console.error('Error fetching API keys:', err);
+          // Show error but don't set error state to avoid disrupting the whole page
+        }
+        setApiKeysLoading(false);
+      };
+      fetchApiKeys();
+    }
+  }, [activeTab, id]);
 
   const handleGenerateApiKey = async () => {
     try {
@@ -279,7 +299,7 @@ const DocumentDetail = () => {
             )}
           </div>
 
-          {/* Mock API keys data */}
+          {/* Display real API keys data */}
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className={theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}>
@@ -302,46 +322,46 @@ const DocumentDetail = () => {
                 </tr>
               </thead>
               <tbody className={theme === 'dark' ? 'bg-gray-800 divide-y divide-gray-700' : 'bg-white divide-y divide-gray-200'}>
-                <tr>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">key_abc123</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                      Active
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500 dark:text-gray-400">Dec 15, 2023</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500 dark:text-gray-400">12 calls</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">
-                      Revoke
-                    </button>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">key_def456</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
-                      Revoked
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500 dark:text-gray-400">Dec 10, 2023</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500 dark:text-gray-400">8 calls</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <span className="text-gray-400 dark:text-gray-500">Revoked</span>
-                  </td>
-                </tr>
+                {apiKeysLoading ? (
+                  <tr>
+                    <td colSpan="5" className="px-6 py-4 text-center whitespace-nowrap">
+                      <div className="flex justify-center items-center">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+                        <span className="ml-2">Loading API keys...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : apiKeys && apiKeys.length > 0 ? (
+                  apiKeys.map((key) => (
+                    <tr key={key.id || key._id}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">{key.apiKey || key.key || 'N/A'}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                          Active
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-500 dark:text-gray-400">Just now</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-500 dark:text-gray-400">0 calls</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">
+                          Revoke
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="5" className="px-6 py-4 text-center whitespace-nowrap">
+                      <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>No API keys generated yet</p>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -373,14 +393,14 @@ const DocumentDetail = () => {
             <div className="mb-4">
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">This is your API key. Copy it now as it will not be shown again.</p>
               <div className={`p-3 rounded-md break-all ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'}`}>
-                {generatedKey.key}
+                {generatedKey.apiKey || generatedKey.key}
               </div>
             </div>
 
             <div className="flex space-x-3">
               <button
                 onClick={() => {
-                  navigator.clipboard.writeText(generatedKey.key);
+                  navigator.clipboard.writeText(generatedKey.apiKey || generatedKey.key);
                   // Show some feedback that it was copied
                 }}
                 className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"

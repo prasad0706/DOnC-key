@@ -201,6 +201,37 @@ app.post('/api/documents/:documentId/api-keys', async (req, res) => {
   }
 });
 
+// GET API keys for a specific document
+app.get('/api/documents/:documentId/api-keys', async (req, res) => {
+  try {
+    const { documentId } = req.params;
+
+    // Check if document exists
+    const document = await Document.findById(documentId);
+    if (!document) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    // Find all API keys for this document
+    const apiKeys = await ApiKey.find({ documentId });
+    
+    // Format the response
+    const formattedKeys = apiKeys.map(key => ({
+      id: key._id,
+      documentId: key.documentId,
+      createdAt: key.createdAt,
+      updatedAt: key.updatedAt,
+      revoked: key.revoked || false
+    }));
+    
+    res.json(formattedKeys);
+
+  } catch (error) {
+    console.error('Get API keys error:', error);
+    res.status(500).json({ error: 'Failed to retrieve API keys' });
+  }
+});
+
 // PHASE 4 — RETRIEVAL (THE PRODUCT)
 // STEP 7 — Data Fetch API
 app.get('/api/v1/data', async (req, res) => {
@@ -539,13 +570,29 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// Start the server on a fixed port
-const server = app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Function to start server with dynamic port assignment
+function startServer(port) {
+  const server = app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+  });
 
-server.on('error', (err) => {
-  console.error('Server error:', err);
-});
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.log(`Port ${port} is busy, trying ${parseInt(port) + 1}...`);
+      if (port < PORT + 10) { // Try up to 10 ports
+        setTimeout(() => {
+          startServer(parseInt(port) + 1);
+        }, 1000);
+      } else {
+        console.error(`Could not find an available port after trying ${PORT} through ${PORT + 10}`);
+      }
+    } else {
+      console.error('Server error:', err);
+    }
+  });
+}
+
+// Start the server with dynamic port assignment
+startServer(PORT);
 
 console.log('Document Intelligence API Server starting...');
