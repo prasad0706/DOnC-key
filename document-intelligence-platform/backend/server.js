@@ -127,6 +127,7 @@ app.use(cors({
     // Allow production domain
     if (origin === 'https://d-on-c-key.vercel.app') return callback(null, true);
     if (origin === 'https://donc-key-frontend.onrender.com') return callback(null, true);
+        if (origin === 'd-on-c-key-git-prasad-prasad070606-2627s-projects.vercel.app') return callback(null, true);
 
     // For production, you would add your production domain here
     callback(null, false);
