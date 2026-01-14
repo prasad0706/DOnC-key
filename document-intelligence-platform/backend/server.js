@@ -539,13 +539,29 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// Start the server on a fixed port
-const server = app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Function to start server with dynamic port assignment
+function startServer(port) {
+  const server = app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+  });
 
-server.on('error', (err) => {
-  console.error('Server error:', err);
-});
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.log(`Port ${port} is busy, trying ${parseInt(port) + 1}...`);
+      if (port < PORT + 10) { // Try up to 10 ports
+        setTimeout(() => {
+          startServer(parseInt(port) + 1);
+        }, 1000);
+      } else {
+        console.error(`Could not find an available port after trying ${PORT} through ${PORT + 10}`);
+      }
+    } else {
+      console.error('Server error:', err);
+    }
+  });
+}
+
+// Start the server with dynamic port assignment
+startServer(PORT);
 
 console.log('Document Intelligence API Server starting...');
