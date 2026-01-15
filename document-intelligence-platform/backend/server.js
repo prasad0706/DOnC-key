@@ -14,7 +14,11 @@ const ApiKey = require('./models/ApiKey');
 const DocumentData = require('./models/DocumentData');
 const ApiUsage = require('./models/ApiUsage');
 const { Queue } = require('bullmq');
+// const { Queue } = require('bullmq');
 const IORedis = require('ioredis');
+const { bucket } = require('./config/firebase');
+const verifyToken = require('./middleware/auth');
+const Project = require('./models/Project');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -31,13 +35,13 @@ const documentQueue = {
       data,
       timestamp: Date.now()
     };
-    
+
     jobQueue.push(job);
     console.log(`Job added to queue: ${name} for document ${data.documentId}`);
-    
+
     // Process the job asynchronously
     setTimeout(() => processJob(job), 100);
-    
+
     return { id: jobId };
   }
 };
@@ -47,54 +51,64 @@ async function processJob(job) {
   if (job.name === 'process-document') {
     try {
       console.log(`Processing document ${job.data.documentId}`);
-      
+
       const Document = require('./models/Document');
       const DocumentData = require('./models/DocumentData');
-      
+      const { downloadFile, extractText } = require('./utils/fileProcessor');
+      const { generateDocumentSummary } = require('./utils/gemini');
+
       // Update status to processing
-      await Document.findByIdAndUpdate(job.data.documentId, { 
+      await Document.findByIdAndUpdate(job.data.documentId, {
         status: 'processing',
         updatedAt: new Date()
       });
-      
+
       console.log(`Document ${job.data.documentId} status updated to processing`);
-      
-      // Simulate processing delay
-      setTimeout(async () => {
-        try {
-          // In a real system, this would call Gemini here
-          // For demo, we'll create mock processed data
-          const mockProcessedData = {
-            rawText: `Mock processed content for document ${job.data.documentId}. This simulates the result of AI processing.`,
-            summary: `Summary of document ${job.data.documentId}`,
-            keyPoints: [`Key point 1 from ${job.data.documentId}`, `Key point 2 from ${job.data.documentId}`]
-          };
-          
-          // Save processed data
-          await DocumentData.create({
-            documentId: job.data.documentId,
-            data: mockProcessedData
-          });
-          
-          // Update status to ready
-          await Document.findByIdAndUpdate(job.data.documentId, { 
-            status: 'ready',
-            processedAt: new Date(),
-            updatedAt: new Date()
-          });
-          
-          console.log(`Document ${job.data.documentId} processed successfully and marked as ready`);
-        } catch (processError) {
-          console.error(`Error processing document ${job.data.documentId}:`, processError);
-          
-          // Update status to failed
-          await Document.findByIdAndUpdate(job.data.documentId, { 
-            status: 'failed', 
-            error: processError.message,
-            updatedAt: new Date()
-          });
-        }
-      }, 3000); // Simulate processing time
+
+      try {
+        // 1. Download file from Firebase URL
+        console.log(`Downloading file from ${job.data.fileUrl}...`);
+        const fileBuffer = await downloadFile(job.data.fileUrl);
+
+        // 2. Extract text
+        console.log('Extracting text...');
+        // fileType was saved as mimetype in upload handler
+        const doc = await Document.findById(job.data.documentId);
+        const text = await extractText(fileBuffer, doc.fileType);
+
+        console.log(`Extracted ${text.length} characters. Sending to Gemini...`);
+
+        // 3. Generate Summary with Gemini
+        const processedData = await generateDocumentSummary(text);
+
+        // 4. Save processed data to MongoDB
+        await DocumentData.create({
+          documentId: job.data.documentId,
+          data: {
+            ...processedData,
+            rawText: text.substring(0, 5000) + '...' // Store first 5000 chars of raw text for reference
+          }
+        });
+
+        // 5. Update status to ready
+        await Document.findByIdAndUpdate(job.data.documentId, {
+          status: 'ready',
+          processedAt: new Date(),
+          updatedAt: new Date()
+        });
+
+        console.log(`Document ${job.data.documentId} processed successfully and marked as ready`);
+
+      } catch (processError) {
+        console.error(`Error processing document ${job.data.documentId}:`, processError);
+
+        // Update status to failed
+        await Document.findByIdAndUpdate(job.data.documentId, {
+          status: 'failed',
+          error: processError.message,
+          updatedAt: new Date()
+        });
+      }
     } catch (error) {
       console.error('Error in job processing:', error);
     }
@@ -112,11 +126,14 @@ app.use(cors({
     if (origin.includes('localhost')) return callback(null, true);
     // Allow production domain
     if (origin === 'https://d-on-c-key.vercel.app') return callback(null, true);
+    if (origin === 'https://donc-key-frontend.onrender.com') return callback(null, true);
+
     // For production, you would add your production domain here
     callback(null, false);
   },
   credentials: true
 }));
+app.options('*', cors()); // Enable pre-flight for all routes
 app.use(express.json());
 
 // Multer configuration for file uploads
@@ -216,7 +233,7 @@ app.get('/api/documents/:documentId/api-keys', async (req, res) => {
 
     // Find all API keys for this document
     const apiKeys = await ApiKey.find({ documentId });
-    
+
     // Format the response
     const formattedKeys = apiKeys.map(key => ({
       id: key._id,
@@ -225,7 +242,7 @@ app.get('/api/documents/:documentId/api-keys', async (req, res) => {
       updatedAt: key.updatedAt,
       revoked: key.revoked || false
     }));
-    
+
     res.json(formattedKeys);
 
   } catch (error) {
@@ -238,7 +255,7 @@ app.get('/api/documents/:documentId/api-keys', async (req, res) => {
 // STEP 7 — Data Fetch API
 app.get('/api/v1/data', async (req, res) => {
   const startTime = Date.now();
-  
+
   try {
     const apiKey = req.headers['x-api-key'];
 
@@ -250,7 +267,7 @@ app.get('/api/v1/data', async (req, res) => {
         latency: Date.now() - startTime
       });
       await usageRecord.save();
-      
+
       return res.status(401).json({ error: 'API key required' });
     }
 
@@ -274,7 +291,7 @@ app.get('/api/v1/data', async (req, res) => {
         latency: Date.now() - startTime
       });
       await usageRecord.save();
-      
+
       return res.status(403).json({ error: 'Invalid API key' });
     }
 
@@ -291,7 +308,7 @@ app.get('/api/v1/data', async (req, res) => {
         latency: Date.now() - startTime
       });
       await usageRecord.save();
-      
+
       return res.status(404).json({ error: 'Document data not found' });
     }
 
@@ -320,7 +337,7 @@ app.get('/api/v1/data', async (req, res) => {
 async function verifyApiKey(req, res, next) {
   const startTime = Date.now();
   const apiKey = req.headers['x-api-key'];
-  
+
   if (!apiKey) {
     const usageRecord = new ApiUsage({
       documentId: null,
@@ -329,7 +346,7 @@ async function verifyApiKey(req, res, next) {
       latency: Date.now() - startTime
     });
     await usageRecord.save();
-    
+
     return res.status(401).json({ error: 'API key required' });
   }
 
@@ -352,12 +369,12 @@ async function verifyApiKey(req, res, next) {
       latency: Date.now() - startTime
     });
     await usageRecord.save();
-    
+
     return res.status(403).json({ error: 'Invalid API key' });
   }
 
   req.documentId = matchedKey.documentId;
-  
+
   // Record successful usage
   const usageRecord = new ApiUsage({
     documentId: req.documentId,
@@ -366,7 +383,7 @@ async function verifyApiKey(req, res, next) {
     latency: Date.now() - startTime
   });
   await usageRecord.save();
-  
+
   return next();
 }
 
@@ -387,79 +404,88 @@ app.get('/api/extract/:documentId', verifyApiKey, async (req, res) => {
   res.json(data.data);
 });
 
-// Document upload endpoint
-app.post('/api/documents/upload', upload.single('document'), async (req, res) => {
+// Document upload endpoint - Secured
+app.post('/api/documents/upload', verifyToken, upload.single('document'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
+    const { projectId } = req.body;
+
+    // If projectId is provided, verify it belongs to the user
+    if (projectId) {
+      const project = await Project.findOne({ _id: projectId, userId: req.user.uid });
+      if (!project) {
+        return res.status(404).json({ error: 'Project not found or access denied' });
+      }
+    } else {
+      return res.status(400).json({ error: 'Project ID is required. Please select or create a project.' });
+    }
+
     // Generate a documentId
     const documentId = generateDocumentId();
 
-    // Save file temporarily or process it
-    // For this implementation, we'll store in a temporary location
-    const tempFileName = `${documentId}_${req.file.originalname}`;
-    const tempFilePath = path.join(__dirname, 'temp', tempFileName);
-    
-    // Create temp directory if it doesn't exist
-    if (!fs.existsSync(path.join(__dirname, 'temp'))) {
-      fs.mkdirSync(path.join(__dirname, 'temp'), { recursive: true });
-    }
-    
-    // Write file buffer to temp location
-    try {
-      fs.writeFileSync(tempFilePath, req.file.buffer);
-    } catch (fileError) {
-      console.error('Error writing file:', fileError);
-      return res.status(500).json({ error: 'Failed to save uploaded file' });
-    }
-
-    // Insert a document record into MongoDB
-    const document = new Document({
-      _id: documentId,
-      fileUrl: tempFilePath, // Store the temp file path
-      fileName: req.file.originalname,
-      fileType: req.file.mimetype,
-      fileSize: req.file.size,
-      tempFilePath: tempFilePath,
-      status: 'queued'
-    });
+    // Upload to Firebase Storage
+    const fileName = `${documentId}_${req.file.originalname}`;
+    const cleanFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, ''); // Basic sanitization
+    const file = bucket.file(cleanFileName);
 
     try {
+      await file.save(req.file.buffer, {
+        metadata: {
+          contentType: req.file.mimetype,
+          metadata: {
+            originalName: req.file.originalname,
+            documentId: documentId,
+            projectId: projectId || 'none',
+            userId: req.user.uid
+          }
+        }
+      });
+
+      // Make the file public or get a signed URL
+      const [signedUrl] = await file.getSignedUrl({
+        action: 'read',
+        expires: '03-09-2491' // Long expiration date
+      });
+
+      // Insert a document record into MongoDB
+      const document = new Document({
+        _id: documentId,
+        fileUrl: signedUrl,
+        fileName: req.file.originalname,
+        fileType: req.file.mimetype,
+        fileSize: req.file.size,
+        tempFilePath: `gs://${bucket.name}/${cleanFileName}`,
+        status: 'queued',
+        projectId: projectId, // Save the association
+        userId: req.user.uid // Associate document with the user
+      });
+
       await document.save();
-    } catch (dbError) {
-      console.error('Error saving document to DB:', dbError);
-      // Clean up the temp file if DB save fails
-      if (fs.existsSync(tempFilePath)) {
-        fs.unlinkSync(tempFilePath);
-      }
-      return res.status(500).json({ error: 'Failed to save document record' });
-    }
 
-    // Push to queue for processing
-    try {
+      // Push to queue for processing
       await documentQueue.add('process-document', {
         documentId,
-        filePath: tempFilePath,
+        fileUrl: signedUrl,
+        storagePath: cleanFileName,
         fileName: req.file.originalname
       });
-    } catch (queueError) {
-      console.error('Error adding to queue:', queueError);
-      // Update document status to failed if queue fails
-      await Document.findByIdAndUpdate(documentId, { 
-        status: 'failed', 
-        error: queueError.message || 'Failed to add document to processing queue' 
-      });
-      return res.status(500).json({ error: 'Failed to add document to processing queue' });
-    }
 
-    res.status(202).json({
-      message: 'Document uploaded and queued for processing',
-      status: 'queued',
-      documentId: documentId,
-      documentName: req.file.originalname
-    });
+      res.status(202).json({
+        message: 'Document uploaded to Firebase and queued for processing',
+        status: 'queued',
+        documentId: documentId,
+        documentName: req.file.originalname,
+        fileUrl: signedUrl,
+        projectId: projectId
+      });
+
+    } catch (uploadError) {
+      console.error('Error uploading to Firebase or saving document:', uploadError);
+      return res.status(500).json({ error: 'Failed to upload document to storage' });
+    }
 
   } catch (error) {
     console.error('Document upload error:', error);
@@ -513,14 +539,14 @@ app.delete('/api/admin/cleanup-documents', async (req, res) => {
   try {
     const Document = require('./models/Document');
     const documents = await Document.find({ status: 'processing' });
-    
+
     let cleanedCount = 0;
     for (const doc of documents) {
       if (doc.tempFilePath && !require('fs').existsSync(doc.tempFilePath)) {
         // Delete document record
         await Document.findByIdAndDelete(doc._id);
         cleanedCount++;
-        
+
         // Try to remove temp file reference if it exists in current path
         const path = require('path');
         const currentTempPath = path.join(__dirname, 'temp', path.basename(doc.tempFilePath));
@@ -529,7 +555,7 @@ app.delete('/api/admin/cleanup-documents', async (req, res) => {
         }
       }
     }
-    
+
     res.json({ message: `Cleaned up ${cleanedCount} invalid documents` });
   } catch (error) {
     console.error('Cleanup error:', error);
@@ -541,24 +567,28 @@ app.delete('/api/admin/cleanup-documents', async (req, res) => {
 const documentsRoutes = require('./routes/documents');
 app.use('/api/documents', documentsRoutes.initializeRouter(documentQueue, generateDocumentId));
 
+// Project routes
+const projectRoutes = require('./routes/projects');
+app.use('/api/projects', projectRoutes);
+
 // Endpoint to clear all documents (for debugging)
 app.delete('/api/admin/clear-all-documents', async (req, res) => {
   try {
     const Document = require('./models/Document');
     const result = await Document.deleteMany({});
-    
+
     // Clean up temp directory
     const fs = require('fs');
     const path = require('path');
     const tempDir = path.join(__dirname, 'temp');
-    
+
     if (fs.existsSync(tempDir)) {
       const files = fs.readdirSync(tempDir);
       for (const file of files) {
         fs.unlinkSync(path.join(tempDir, file));
       }
     }
-    
+
     res.json({ message: `Cleared ${result.deletedCount} documents and cleaned temp directory` });
   } catch (error) {
     console.error('Clear all error:', error);

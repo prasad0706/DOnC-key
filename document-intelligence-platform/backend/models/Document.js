@@ -34,10 +34,15 @@ const documentSchema = new mongoose.Schema(
     error: {
       type: String,
       default: null
+    },
+    projectId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Project',
+      required: false // Optional for now to support legacy docs, but should be required for new ones
     }
   },
   {
-    timestamps: true, // 🔥 THIS FIXES "Invalid Date"
+    timestamps: true,
   }
 );
 
