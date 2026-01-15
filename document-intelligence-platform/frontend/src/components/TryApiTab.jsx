@@ -15,7 +15,8 @@ const TryApiTab = ({ documentId }) => {
   const codeClasses = `p-3 rounded-md break-all ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} text-sm font-mono`;
 
   // Backend URL
-  const baseUrl = `http://localhost:5000/api/v1`;
+  const backendURL = process.env.VITE_API_BASE_URL || 'http://localhost:5000';
+  const baseUrl = `${backendURL}/api/v1`;
 
   const handleExecute = async () => {
     if (!apiKey) {
