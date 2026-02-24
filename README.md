@@ -1,2 +1,0 @@
-# DOnC-key
-# GDG-Hack
