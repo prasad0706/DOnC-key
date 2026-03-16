@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
-import { DocumentTextIcon, ClockIcon, CheckCircleIcon, XCircleIcon, KeyIcon, ArrowLeftIcon, TableCellsIcon, CodeBracketIcon, PlayIcon } from '@heroicons/react/24/outline';
-import { getDocumentDetail, generateApiKey, getApiKeys } from '../utils/api';
+import { DocumentTextIcon, ClockIcon, CheckCircleIcon, XCircleIcon, KeyIcon, ArrowLeftIcon, TableCellsIcon, CodeBracketIcon, PlayIcon, ChatBubbleLeftRightIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { getDocumentDetail, generateApiKey, getApiKeys, exportDocument } from '../utils/api';
 import StructureTab from '../components/StructureTab';
 import ApiDocsTab from '../components/ApiDocsTab';
 import TryApiTab from '../components/TryApiTab';
+import ChatTab from '../components/ChatTab';
 
 const DocumentDetail = () => {
   const { id } = useParams();
@@ -227,6 +228,16 @@ const DocumentDetail = () => {
             <PlayIcon className="h-4 w-4 mr-1" />
             Try API
           </button>
+          <button
+            onClick={() => setActiveTab('chat')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center ${activeTab === 'chat'
+              ? 'border-purple-500 text-purple-600 dark:text-purple-400'
+              : `border-transparent ${theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`
+              }`}
+          >
+            <ChatBubbleLeftRightIcon className="h-4 w-4 mr-1" />
+            Chat
+          </button>
         </nav>
       </div>
 
@@ -374,6 +385,10 @@ const DocumentDetail = () => {
 
       {activeTab === 'try-api' && (
         <TryApiTab documentId={document.id} />
+      )}
+
+      {activeTab === 'chat' && (
+        <ChatTab documentId={document.id || document._id} documentStatus={document.status} />
       )}
 
       {/* API Key Modal */}

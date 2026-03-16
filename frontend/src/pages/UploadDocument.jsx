@@ -198,7 +198,7 @@ const UploadDocument = () => {
 
         <div className="mb-4">
           <p className={statTextClasses}>
-            Supported formats: PDF, JPG, JPEG, PNG, GIF (Max size: 10MB)
+            Supported formats: PDF, DOCX, XLSX, CSV, JPG, PNG, GIF (Max size: 10MB)
           </p>
         </div>
 
@@ -206,7 +206,7 @@ const UploadDocument = () => {
           <input
             type="file"
             onChange={handleFileChange}
-            accept=".pdf,.jpg,.jpeg,.png,.gif"
+            accept=".pdf,.jpg,.jpeg,.png,.gif,.docx,.xlsx,.csv"
             className="hidden"
             id="document-upload"
             disabled={isUploading}
@@ -218,7 +218,7 @@ const UploadDocument = () => {
               : (isUploading ? 'border-gray-300 bg-gray-100 text-gray-400' : 'border-gray-300 bg-white text-gray-900 hover:bg-gray-50')
               }`}
           >
-            {file ? file.name : 'Choose a file (PDF, JPG, PNG, GIF)'}
+            {file ? file.name : 'Choose a file (PDF, DOCX, XLSX, CSV, JPG, PNG, GIF)'}
           </label>
           <button
             onClick={handleUpload}

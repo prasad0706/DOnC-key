@@ -181,4 +181,61 @@ export const deleteProject = async (id) => {
   }
 };
 
+// Document Chat API
+export const chatWithDocument = async (documentId, question, chatHistory = []) => {
+  try {
+    const response = await api.post(`/documents/${documentId}/chat`, { question, chatHistory });
+    return response.data;
+  } catch (error) {
+    console.error('Chat error:', error);
+    throw error;
+  }
+};
+
+// Document Search API
+export const searchDocuments = async (query) => {
+  try {
+    const response = await api.get(`/documents/search?q=${encodeURIComponent(query)}`);
+    return response.data;
+  } catch (error) {
+    console.error('Search error:', error);
+    throw error;
+  }
+};
+
+// Document Export API
+export const exportDocument = async (documentId, format = 'json') => {
+  try {
+    const response = await api.get(`/documents/${documentId}/export?format=${format}`, {
+      responseType: format === 'csv' ? 'blob' : 'json'
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Export error:', error);
+    throw error;
+  }
+};
+
+// Dashboard Stats API
+export const getDashboardStats = async () => {
+  try {
+    const response = await api.get('/usage/dashboard-stats');
+    return response.data;
+  } catch (error) {
+    console.error('Dashboard stats error:', error);
+    throw error;
+  }
+};
+
+// Usage Analytics API (with time range)
+export const getUsageAnalyticsWithRange = async (range = '30d') => {
+  try {
+    const response = await api.get(`/usage/analytics?range=${range}`);
+    return response.data;
+  } catch (error) {
+    console.error('Usage analytics error:', error);
+    throw error;
+  }
+};
+
 export default api;

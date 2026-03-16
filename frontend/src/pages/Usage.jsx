@@ -3,7 +3,7 @@ import { useTheme } from '../context/ThemeContext';
 import { ChartBarIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js';
-import { getUsageAnalytics } from '../utils/api';
+import { getUsageAnalyticsWithRange } from '../utils/api';
 
 // Register ChartJS components
 ChartJS.register(
@@ -28,35 +28,21 @@ const Usage = () => {
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        // Mock data - in a real app, this would be the API call
-        const mockAnalytics = {
-          apiCallsOverTime: {
-            labels: ['Jan 1', 'Jan 8', 'Jan 15', 'Jan 22', 'Jan 29', 'Feb 5', 'Feb 12'],
-            data: [12, 19, 8, 15, 22, 18, 25]
-          },
-          requestsPerDocument: {
-            labels: ['Invoice.pdf', 'Contract.docx', 'Report.xlsx', 'Manual.pdf', 'Catalog.pdf'],
-            data: [15, 8, 12, 6, 10]
-          },
-          errorVsSuccess: {
-            success: 47,
-            error: 3
-          },
-          averageLatency: 450, // in ms
-          totalApiCalls: 50,
-          successRate: 94.0
-        };
-
-        setAnalytics(mockAnalytics);
+        setLoading(true);
+        const data = await getUsageAnalyticsWithRange(timeRange);
+        setAnalytics(data);
         setLoading(false);
-
-        // Real API call would be:
-        // const data = await getUsageAnalytics();
-        // setAnalytics(data);
       } catch (err) {
-        setError('Failed to fetch usage analytics');
+        // Fallback to mock data if API has no data yet
+        setAnalytics({
+          apiCallsOverTime: { labels: [], data: [] },
+          requestsPerDocument: { labels: [], data: [] },
+          errorVsSuccess: { success: 0, error: 0 },
+          averageLatency: 0,
+          totalApiCalls: 0,
+          successRate: 100
+        });
         setLoading(false);
-        console.error('Error fetching analytics:', err);
       }
     };
 

@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
-import { DocumentTextIcon, ClockIcon, CheckCircleIcon, XCircleIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
+import { DocumentTextIcon, ClockIcon, CheckCircleIcon, XCircleIcon, ArrowTopRightOnSquareIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
-import { getDocuments } from '../utils/api';
+import { getDocuments, searchDocuments } from '../utils/api';
 
 const Documents = () => {
   const { theme } = useTheme();
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     const fetchDocuments = async () => {
@@ -101,6 +104,68 @@ const Documents = () => {
           <DocumentTextIcon className="h-5 w-5 mr-2" />
           Upload Document
         </Link>
+      </div>
+
+      {/* Search Bar */}
+      <div className="mb-6">
+        <div className="relative">
+          <MagnifyingGlassIcon className={`absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-400'}`} />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={async (e) => {
+              if (e.key === 'Enter' && searchQuery.trim()) {
+                setIsSearching(true);
+                try {
+                  const data = await searchDocuments(searchQuery);
+                  setSearchResults(data);
+                } catch (err) {
+                  console.error('Search error:', err);
+                }
+                setIsSearching(false);
+              }
+            }}
+            placeholder="Search documents by content... (press Enter)"
+            className={`w-full pl-10 pr-4 py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'dark'
+              ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400'
+              : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+            }`}
+          />
+          {searchQuery && (
+            <button
+              onClick={() => { setSearchQuery(''); setSearchResults(null); }}
+              className={`absolute right-3 top-1/2 -translate-y-1/2 text-sm ${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-400 hover:text-gray-700'}`}
+            >
+              Clear
+            </button>
+          )}
+        </div>
+        {isSearching && (
+          <p className={`text-sm mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Searching...</p>
+        )}
+        {searchResults && (
+          <div className="mt-3">
+            <p className={`text-sm mb-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              Found {searchResults.total} result{searchResults.total !== 1 ? 's' : ''} for "{searchResults.query}"
+            </p>
+            {searchResults.results.map((r) => (
+              <Link key={r.documentId} to={`/documents/${r.documentId}`}
+                className={`block p-3 mb-2 rounded-lg border transition-colors ${theme === 'dark'
+                  ? 'bg-gray-800 border-gray-700 hover:border-blue-500'
+                  : 'bg-white border-gray-200 hover:border-blue-400'
+                }`}>
+                <div className="flex items-center justify-between">
+                  <span className={`font-medium text-sm ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{r.fileName}</span>
+                  {r.category && (
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-700'}`}>{r.category}</span>
+                  )}
+                </div>
+                <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>{r.summary}</p>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
 
       {documents.length === 0 ? (
