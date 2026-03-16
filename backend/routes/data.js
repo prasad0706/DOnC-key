@@ -1,0 +1,107 @@
+const express = require('express');
+const router = express.Router();
+const bcrypt = require('bcryptjs');
+const ApiKey = require('../models/ApiKey');
+const DocumentData = require('../models/DocumentData');
+const ApiUsage = require('../models/ApiUsage');
+const logger = require('../utils/logger');
+const { dataApiLimiter } = require('../middleware/rateLimiter');
+
+/**
+ * Verify API key using prefix-based lookup (O(1) DB lookup + 1 bcrypt compare)
+ * instead of scanning all keys with bcrypt.
+ */
+async function verifyApiKey(req, res, next) {
+  const startTime = Date.now();
+  const apiKey = req.headers['x-api-key'];
+
+  if (!apiKey) {
+    await ApiUsage.create({
+      documentId: 'unknown',
+      endpoint: req.originalUrl,
+      success: false,
+      latency: Date.now() - startTime
+    });
+    return res.status(401).json({ error: 'API key required' });
+  }
+
+  try {
+    // Extract prefix for indexed lookup (first 12 chars)
+    const keyPrefix = apiKey.substring(0, 12);
+
+    // Find candidate keys by prefix (typically 1 result)
+    const candidates = await ApiKey.find({ keyPrefix, revoked: false });
+
+    let matchedKey = null;
+    for (const key of candidates) {
+      const isMatch = await bcrypt.compare(apiKey, key.keyHash);
+      if (isMatch) {
+        matchedKey = key;
+        break;
+      }
+    }
+
+    if (!matchedKey) {
+      await ApiUsage.create({
+        documentId: 'unknown',
+        endpoint: req.originalUrl,
+        success: false,
+        latency: Date.now() - startTime
+      });
+      return res.status(403).json({ error: 'Invalid API key' });
+    }
+
+    req.documentId = matchedKey.documentId;
+
+    // Record successful usage
+    await ApiUsage.create({
+      documentId: req.documentId,
+      endpoint: req.originalUrl,
+      success: true,
+      latency: Date.now() - startTime
+    });
+
+    return next();
+  } catch (error) {
+    logger.error('API key verification error', { error: error.message });
+    return res.status(500).json({ error: 'Authentication error' });
+  }
+}
+
+// GET /api/v1/data — Public data retrieval via API key
+router.get('/data', dataApiLimiter, verifyApiKey, async (req, res, next) => {
+  try {
+    const documentData = await DocumentData.findOne({ documentId: req.documentId });
+
+    if (!documentData) {
+      return res.status(404).json({ error: 'Document data not found' });
+    }
+
+    res.json({
+      documentId: req.documentId,
+      data: documentData.data
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/v1/extract/:documentId — Protected data extraction
+router.get('/extract/:documentId', dataApiLimiter, verifyApiKey, async (req, res, next) => {
+  try {
+    if (req.params.documentId !== req.documentId) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const data = await DocumentData.findOne({ documentId: req.documentId });
+    if (!data) {
+      return res.status(404).json({ error: 'No data found' });
+    }
+
+    res.json(data.data);
+  } catch (error) {
+    next(error);
+  }
+});
+
+module.exports = router;

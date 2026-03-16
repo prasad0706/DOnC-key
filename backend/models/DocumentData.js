@@ -17,6 +17,12 @@ const documentDataSchema = new mongoose.Schema({
   }
 });
 
+// Text index for full-text search across summary and key points
+documentDataSchema.index(
+  { 'data.summary': 'text', 'data.extractedText': 'text' },
+  { name: 'document_text_search', weights: { 'data.summary': 10, 'data.extractedText': 5 } }
+);
+
 const DocumentData = mongoose.model('DocumentData', documentDataSchema);
 
 module.exports = DocumentData;

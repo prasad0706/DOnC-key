@@ -3,97 +3,92 @@ const router = express.Router();
 const Project = require('../models/Project');
 const Document = require('../models/Document');
 const verifyToken = require('../middleware/auth');
+const { validate, projectSchemas } = require('../middleware/validators');
+const logger = require('../utils/logger');
+const { NotFoundError } = require('../utils/errors');
 
-// Apply auth middleware to all project routes
+// All project routes require authentication
 router.use(verifyToken);
 
-// GET /api/projects - Get all projects for the current user
-router.get('/', async (req, res) => {
-    try {
-        const projects = await Project.find({ userId: req.user.uid }).sort({ createdAt: -1 });
+// GET /api/projects — List all projects for the current user
+router.get('/', async (req, res, next) => {
+  try {
+    const projects = await Project.find({ userId: req.user.uid }).sort({ createdAt: -1 });
 
-        // Optional: Populate documents for each project (could be expensive if many docs)
-        // For now, let's just return the projects. The frontend can fetch docs per project or we can aggregate.
-        // Let's attach document count at least.
-        const projectsWithCounts = await Promise.all(projects.map(async (project) => {
-            const docCount = await Document.countDocuments({ projectId: project._id });
-            return {
-                ...project.toObject(),
-                documentCount: docCount
-            };
-        }));
+    const projectsWithCounts = await Promise.all(projects.map(async (project) => {
+      const docCount = await Document.countDocuments({ projectId: project._id });
+      return {
+        ...project.toObject(),
+        documentCount: docCount
+      };
+    }));
 
-        res.json(projectsWithCounts);
-    } catch (error) {
-        console.error('Error fetching projects:', error);
-        res.status(500).json({ error: 'Failed to fetch projects' });
-    }
+    res.json(projectsWithCounts);
+  } catch (error) {
+    next(error);
+  }
 });
 
-// POST /api/projects - Create a new project
-router.post('/', async (req, res) => {
-    try {
-        const { name, description } = req.body;
+// POST /api/projects — Create a new project
+router.post('/', validate(projectSchemas.create), async (req, res, next) => {
+  try {
+    const { name, description } = req.body;
 
-        if (!name) {
-            return res.status(400).json({ error: 'Project name is required' });
-        }
+    const project = new Project({
+      name,
+      description,
+      userId: req.user.uid
+    });
 
-        const project = new Project({
-            name,
-            description,
-            userId: req.user.uid
-        });
+    await project.save();
 
-        await project.save();
-        res.status(201).json(project);
-    } catch (error) {
-        console.error('Error creating project:', error);
-        res.status(500).json({ error: 'Failed to create project' });
-    }
+    logger.info('Project created', { projectId: project._id, userId: req.user.uid });
+    res.status(201).json(project);
+  } catch (error) {
+    next(error);
+  }
 });
 
-// GET /api/projects/:id - Get a specific project
-router.get('/:id', async (req, res) => {
-    try {
-        const project = await Project.findOne({ _id: req.params.id, userId: req.user.uid });
-
-        if (!project) {
-            return res.status(404).json({ error: 'Project not found' });
-        }
-
-        // Get documents for this project
-        const documents = await Document.find({ projectId: project._id }).sort({ createdAt: -1 });
-
-        res.json({
-            ...project.toObject(),
-            documents
-        });
-    } catch (error) {
-        console.error('Error fetching project details:', error);
-        res.status(500).json({ error: 'Failed to fetch project details' });
+// GET /api/projects/:id — Get a specific project with its documents
+router.get('/:id', async (req, res, next) => {
+  try {
+    const project = await Project.findOne({ _id: req.params.id, userId: req.user.uid });
+    if (!project) {
+      throw new NotFoundError('Project');
     }
+
+    const documents = await Document.find({ projectId: project._id }).sort({ createdAt: -1 });
+
+    res.json({
+      ...project.toObject(),
+      documents
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
-// DELETE /api/projects/:id - Delete a project
-router.delete('/:id', async (req, res) => {
-    try {
-        const project = await Project.findOneAndDelete({ _id: req.params.id, userId: req.user.uid });
-
-        if (!project) {
-            return res.status(404).json({ error: 'Project not found' });
-        }
-
-        // Optional: Delete associated documents from DB (and maybe Storage?)
-        // For now, let's just nullify the projectId or delete the doc records.
-        // Deleting is safer for "private" projects.
-        await Document.deleteMany({ projectId: req.params.id });
-
-        res.json({ message: 'Project deleted' });
-    } catch (error) {
-        console.error('Error deleting project:', error);
-        res.status(500).json({ error: 'Failed to delete project' });
+// DELETE /api/projects/:id — Delete a project and its documents
+router.delete('/:id', async (req, res, next) => {
+  try {
+    const project = await Project.findOneAndDelete({ _id: req.params.id, userId: req.user.uid });
+    if (!project) {
+      throw new NotFoundError('Project');
     }
+
+    // Delete associated documents
+    const deleteResult = await Document.deleteMany({ projectId: req.params.id });
+
+    logger.info('Project deleted', {
+      projectId: req.params.id,
+      documentsDeleted: deleteResult.deletedCount,
+      userId: req.user.uid
+    });
+
+    res.json({ message: 'Project deleted' });
+  } catch (error) {
+    next(error);
+  }
 });
 
 module.exports = router;

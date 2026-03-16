@@ -8,7 +8,7 @@ const documentSchema = new mongoose.Schema(
     },
     fileUrl: {
       type: String,
-      required: false  // Making it not required since we use tempFilePath
+      required: false
     },
     fileName: {
       type: String,
@@ -38,16 +38,18 @@ const documentSchema = new mongoose.Schema(
     projectId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Project',
-      required: false // Optional for now to support legacy docs, but should be required for new ones
+      required: false
+    },
+    userId: {
+      type: String,
+      required: false,
+      index: true // Index for user-scoped queries
     }
   },
   {
     timestamps: true,
   }
 );
-
-// No need for manual timestamp updates since we're using timestamps: true
-// Mongoose will automatically handle createdAt and updatedAt
 
 const Document = mongoose.model('Document', documentSchema);
 

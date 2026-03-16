@@ -11,6 +11,11 @@ const apiKeySchema = new mongoose.Schema({
     required: true,
     unique: true
   },
+  keyPrefix: {
+    type: String,
+    required: true,
+    index: true // Indexed for fast O(1) lookup instead of scanning all keys
+  },
   revoked: {
     type: Boolean,
     default: false
@@ -20,6 +25,9 @@ const apiKeySchema = new mongoose.Schema({
     default: Date.now
   }
 });
+
+// Compound index for efficient prefix + revoked queries
+apiKeySchema.index({ keyPrefix: 1, revoked: 1 });
 
 const ApiKey = mongoose.model('ApiKey', apiKeySchema);
 

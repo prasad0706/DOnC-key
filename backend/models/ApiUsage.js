@@ -20,7 +20,8 @@ const apiUsageSchema = new mongoose.Schema({
   },
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
+    index: true // Index for time-range queries in analytics
   }
 });
 
