@@ -144,14 +144,14 @@ const Dashboard = () => {
             Upload Document
           </h2>
           <p className={`mb-6 max-w-md ${statTextClasses}`}>
-            Drag and drop your files here, or click to browse. Supported formats: PDF, JPG, PNG, GIF.
+            Drag and drop your files here, or click to browse. Supported formats: PDF, DOCX, XLSX, CSV, JPG, PNG, GIF.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center gap-4 w-full max-w-md">
             <input
               type="file"
               onChange={handleFileChange}
-              accept=".pdf,.jpg,.jpeg,.png,.gif"
+              accept=".pdf,.docx,.xlsx,.csv,.jpg,.jpeg,.png,.gif"
               className="hidden"
               id="document-upload"
             />

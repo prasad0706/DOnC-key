@@ -13,11 +13,35 @@ services:
       - NODE_ENV=production
     volumes:
       - backend-logs:/app/logs
+    depends_on:
+      - redis
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/api/status"]
       interval: 30s
       timeout: 5s
       retries: 3
+
+  worker:
+    build: ./backend
+    container_name: donk-worker
+    restart: unless-stopped
+    command: npm run worker
+    env_file:
+      - ./backend/.env
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - redis
+      - backend
+
+  redis:
+    image: redis:7-alpine
+    container_name: donk-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
 
   frontend:
     build: ./frontend
@@ -31,3 +55,4 @@ services:
 
 volumes:
   backend-logs:
+  redis-data:
