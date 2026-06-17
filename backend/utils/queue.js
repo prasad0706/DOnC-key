@@ -53,70 +53,10 @@ if (process.env.REDIS_URL) {
     if (job.name !== 'process-document') return;
 
     try {
-      logger.info('Processing document', { documentId: job.data.documentId });
-
-      const Document = require('../models/Document');
-      const DocumentData = require('../models/DocumentData');
-      const { downloadFile, extractText, isImageType } = require('./fileProcessor');
-      const { generateDocumentSummary, analyzeImage } = require('./gemini');
-
-      // Update status to processing
-      await Document.findByIdAndUpdate(job.data.documentId, {
-        status: 'processing',
-        updatedAt: new Date()
-      });
-
-      try {
-        // 1. Download file from Firebase URL
-        logger.info('Downloading file', { documentId: job.data.documentId, url: job.data.fileUrl?.substring(0, 50) });
-        const fileBuffer = await downloadFile(job.data.fileUrl);
-
-        // 2. Get the document to check file type
-        const doc = await Document.findById(job.data.documentId);
-
-        let processedData;
-
-        if (isImageType(doc.fileType)) {
-          // 3a. For images: Use Gemini Vision API directly
-          logger.info('Analyzing image with Gemini Vision', { documentId: job.data.documentId, fileType: doc.fileType });
-          processedData = await analyzeImage(fileBuffer, doc.fileType);
-        } else {
-          // 3b. For text/PDF: Extract text then generate summary
-          const text = await extractText(fileBuffer, doc.fileType);
-          logger.info('Text extracted', { documentId: job.data.documentId, length: text?.length });
-          processedData = await generateDocumentSummary(text);
-          processedData.rawText = text.substring(0, 5000) + '...';
-        }
-
-        // 4. Save processed data to MongoDB
-        await DocumentData.create({
-          documentId: job.data.documentId,
-          data: processedData
-        });
-
-        // 5. Update status to ready
-        await Document.findByIdAndUpdate(job.data.documentId, {
-          status: 'ready',
-          processedAt: new Date(),
-          updatedAt: new Date()
-        });
-
-        logger.info('Document processed successfully', { documentId: job.data.documentId });
-
-      } catch (processError) {
-        logger.error('Error processing document', {
-          documentId: job.data.documentId,
-          error: processError.message
-        });
-
-        await Document.findByIdAndUpdate(job.data.documentId, {
-          status: 'failed',
-          error: processError.message,
-          updatedAt: new Date()
-        });
-      }
+      const { processDocument } = require('./documentProcessor');
+      await processDocument(job.data.documentId, job.data.fileUrl);
     } catch (error) {
-      logger.error('Error in job processing', { error: error.message });
+      logger.error('Error in fallback job processing', { error: error.message });
     }
   }
 }

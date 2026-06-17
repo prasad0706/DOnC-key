@@ -65,6 +65,7 @@ router.get('/:documentId/api-keys', validate(paramSchemas.documentId, 'params'),
     const formattedKeys = apiKeys.map(key => ({
       id: key._id,
       documentId: key.documentId,
+      keyPrefix: key.keyPrefix,
       createdAt: key.createdAt,
       updatedAt: key.updatedAt,
       revoked: key.revoked || false
@@ -76,8 +77,8 @@ router.get('/:documentId/api-keys', validate(paramSchemas.documentId, 'params'),
   }
 });
 
-// PUT /api/documents/:documentId/api-keys/:keyId/revoke — Revoke an API key
-router.put('/:documentId/api-keys/:keyId/revoke', async (req, res, next) => {
+// PUT/PATCH /api/documents/:documentId/api-keys/:keyId/revoke — Revoke an API key
+const revokeHandler = async (req, res, next) => {
   try {
     const { documentId, keyId } = req.params;
 
@@ -95,6 +96,9 @@ router.put('/:documentId/api-keys/:keyId/revoke', async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-});
+};
+
+router.patch('/:documentId/api-keys/:keyId/revoke', revokeHandler);
+router.put('/:documentId/api-keys/:keyId/revoke', revokeHandler);
 
 module.exports = router;

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { DocumentTextIcon, ClockIcon, CheckCircleIcon, XCircleIcon, KeyIcon, ArrowLeftIcon, TableCellsIcon, CodeBracketIcon, PlayIcon, ChatBubbleLeftRightIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
-import { getDocumentDetail, generateApiKey, getApiKeys, exportDocument } from '../utils/api';
+import { getDocumentDetail, generateApiKey, getApiKeys, revokeApiKey, exportDocument } from '../utils/api';
 import StructureTab from '../components/StructureTab';
 import ApiDocsTab from '../components/ApiDocsTab';
 import TryApiTab from '../components/TryApiTab';
@@ -62,9 +62,25 @@ const DocumentDetail = () => {
       const key = await generateApiKey(id);
       setGeneratedKey(key);
       setShowKeyModal(true);
+      // Fetch updated keys list
+      const keys = await getApiKeys(id);
+      setApiKeys(keys);
     } catch (err) {
       console.error('Error generating API key:', err);
       // Handle error
+    }
+  };
+
+  const handleRevokeApiKey = async (keyId) => {
+    if (window.confirm('Are you sure you want to revoke this API key? This action cannot be undone.')) {
+      try {
+        await revokeApiKey(id, keyId);
+        // Fetch updated keys list
+        const keys = await getApiKeys(id);
+        setApiKeys(keys);
+      } catch (err) {
+        console.error('Error revoking API key:', err);
+      }
     }
   };
 
@@ -346,23 +362,36 @@ const DocumentDetail = () => {
                   apiKeys.map((key) => (
                     <tr key={key.id || key._id}>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">{key.apiKey || key.key || 'N/A'}</div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                          {key.keyPrefix ? `${key.keyPrefix}...` : 'N/A'}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                          Active
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          key.revoked
+                            ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                            : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                        }`}>
+                          {key.revoked ? 'Revoked' : 'Active'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500 dark:text-gray-400">Just now</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          {key.createdAt ? formatDate(key.createdAt) : 'Just now'}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500 dark:text-gray-400">0 calls</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">Active</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">
-                          Revoke
-                        </button>
+                        {!key.revoked && (
+                          <button
+                            onClick={() => handleRevokeApiKey(key.id || key._id)}
+                            className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
+                          >
+                            Revoke
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))

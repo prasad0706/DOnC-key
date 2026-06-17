@@ -3,6 +3,9 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 const Document = require('../models/Document');
+const DocumentData = require('../models/DocumentData');
+const ApiKey = require('../models/ApiKey');
+const ApiUsage = require('../models/ApiUsage');
 const verifyToken = require('../middleware/auth');
 const logger = require('../utils/logger');
 
@@ -18,6 +21,11 @@ router.delete('/cleanup-documents', async (req, res, next) => {
     for (const doc of documents) {
       if (doc.tempFilePath && !doc.tempFilePath.startsWith('gs://') && !fs.existsSync(doc.tempFilePath)) {
         await Document.findByIdAndDelete(doc._id);
+        await Promise.all([
+          DocumentData.deleteMany({ documentId: doc._id }),
+          ApiKey.deleteMany({ documentId: doc._id }),
+          ApiUsage.deleteMany({ documentId: doc._id })
+        ]);
         cleanedCount++;
 
         // Try to remove temp file if it exists
@@ -39,6 +47,11 @@ router.delete('/cleanup-documents', async (req, res, next) => {
 router.delete('/clear-all-documents', async (req, res, next) => {
   try {
     const result = await Document.deleteMany({});
+    await Promise.all([
+      DocumentData.deleteMany({}),
+      ApiKey.deleteMany({}),
+      ApiUsage.deleteMany({})
+    ]);
 
     // Clean up temp directory
     const tempDir = path.join(__dirname, '..', 'temp');

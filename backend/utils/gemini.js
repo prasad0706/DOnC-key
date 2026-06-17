@@ -1,7 +1,69 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { GoogleGenerativeAI, SchemaType } = require('@google/generative-ai');
 const logger = require('./logger');
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+const documentAnalysisSchema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    summary: {
+      type: SchemaType.STRING,
+      description: "A detailed, professional, and comprehensive summary of the document (2-3 paragraphs)."
+    },
+    keyPoints: {
+      type: SchemaType.ARRAY,
+      items: { type: SchemaType.STRING },
+      description: "A list of 5-7 key takeaways/insights."
+    },
+    entities: {
+      type: SchemaType.ARRAY,
+      items: { type: SchemaType.STRING },
+      description: "A list of important people, organizations, dates, or technologies mentioned."
+    },
+    sentiment: {
+      type: SchemaType.STRING,
+      description: "The overall tone/sentiment (Positive, Negative, or Neutral)."
+    },
+    category: {
+      type: SchemaType.STRING,
+      description: "The type/category of the document (e.g., Resume/CV, Legal Agreement, Financial Statement, Technical Document, etc.)."
+    }
+  },
+  required: ["summary", "keyPoints", "entities", "sentiment", "category"]
+};
+
+const imageAnalysisSchema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    summary: {
+      type: SchemaType.STRING,
+      description: "A detailed, professional, and comprehensive summary of the image content (2-3 paragraphs)."
+    },
+    extractedText: {
+      type: SchemaType.STRING,
+      description: "All text found/transcribed in the image (OCR)."
+    },
+    keyPoints: {
+      type: SchemaType.ARRAY,
+      items: { type: SchemaType.STRING },
+      description: "A list of 5-7 key observations or takeaways."
+    },
+    entities: {
+      type: SchemaType.ARRAY,
+      items: { type: SchemaType.STRING },
+      description: "A list of important people, organizations, dates, or objects identified."
+    },
+    sentiment: {
+      type: SchemaType.STRING,
+      description: "Overall sentiment (Neutral, Positive, Negative)."
+    },
+    category: {
+      type: SchemaType.STRING,
+      description: "Content category (e.g., Financial, Legal, Technical, General, Photo, Chart, Diagram)."
+    }
+  },
+  required: ["summary", "extractedText", "keyPoints", "entities", "sentiment", "category"]
+};
 
 /**
  * Generate a structured summary from document text using Gemini.
@@ -12,29 +74,21 @@ async function generateDocumentSummary(text) {
 
     const prompt = `
       You are an expert document analyst. Analyze the following document text and provide a structured JSON response.
-      
-      Output ONLY valid JSON. Do not use markdown code blocks (\`\`\`json).
-      
-      Structure:
-      {
-        "summary": "A comprehensive summary of the document (2-3 paragraphs)",
-        "keyPoints": ["List of 5-7 key takeaways"],
-        "entities": ["List of important people, organizations, or dates mentioned"],
-        "sentiment": "Overall sentiment (Neutral, Positive, Negative)",
-        "category": "Document category (e.g., Financial, Legal, Technical, General)"
-      }
 
       Document Text:
       "${text.substring(0, 30000)}"
     `;
 
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: documentAnalysisSchema
+      }
+    });
+
     const response = await result.response;
-    const textResponse = response.text();
-
-    const jsonString = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
-
-    return JSON.parse(jsonString);
+    return JSON.parse(response.text());
   } catch (error) {
     logger.error('Error generating summary with Gemini', { error: error.message });
     throw new Error('Failed to generate document summary');
@@ -55,29 +109,18 @@ async function analyzeImage(imageBuffer, mimeType) {
       }
     };
 
-    const prompt = `You are an expert document analyst. Analyze this image thoroughly.
-    
-    Extract ALL text visible in the image (OCR). Then analyze the content.
-    
-    Output ONLY valid JSON. Do not use markdown code blocks.
-    
-    Structure:
-    {
-      "summary": "A comprehensive summary of the image content (2-3 paragraphs)",
-      "extractedText": "All text found in the image",
-      "keyPoints": ["List of 5-7 key observations or takeaways"],
-      "entities": ["List of important people, organizations, dates, or objects identified"],
-      "sentiment": "Overall sentiment (Neutral, Positive, Negative)",
-      "category": "Content category (e.g., Financial, Legal, Technical, General, Photo, Chart, Diagram)"
-    }`;
+    const prompt = `You are an expert document analyst. Analyze this image thoroughly. Extract ALL text visible in the image (OCR). Then analyze the content.`;
 
-    const result = await model.generateContent([prompt, imagePart]);
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: prompt }, imagePart] }],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: imageAnalysisSchema
+      }
+    });
+
     const response = await result.response;
-    const textResponse = response.text();
-
-    const jsonString = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
-
-    return JSON.parse(jsonString);
+    return JSON.parse(response.text());
   } catch (error) {
     logger.error('Error analyzing image with Gemini Vision', { error: error.message });
     throw new Error('Failed to analyze image');

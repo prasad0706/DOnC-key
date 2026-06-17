@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const Project = require('../models/Project');
 const Document = require('../models/Document');
+const DocumentData = require('../models/DocumentData');
+const ApiKey = require('../models/ApiKey');
+const ApiUsage = require('../models/ApiUsage');
 const verifyToken = require('../middleware/auth');
 const { validate, projectSchemas } = require('../middleware/validators');
 const logger = require('../utils/logger');
@@ -76,8 +79,17 @@ router.delete('/:id', async (req, res, next) => {
       throw new NotFoundError('Project');
     }
 
-    // Delete associated documents
-    const deleteResult = await Document.deleteMany({ projectId: req.params.id });
+    // Find all documents associated with the project
+    const docs = await Document.find({ projectId: req.params.id }).select('_id');
+    const docIds = docs.map(d => d._id);
+
+    // Delete all associated resources
+    const [deleteResult] = await Promise.all([
+      Document.deleteMany({ projectId: req.params.id }),
+      DocumentData.deleteMany({ documentId: { $in: docIds } }),
+      ApiKey.deleteMany({ documentId: { $in: docIds } }),
+      ApiUsage.deleteMany({ documentId: { $in: docIds } })
+    ]);
 
     logger.info('Project deleted', {
       projectId: req.params.id,
