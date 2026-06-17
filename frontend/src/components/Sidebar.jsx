@@ -26,11 +26,9 @@ const Sidebar = () => {
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: HomeIcon },
     { name: 'Projects', path: '/projects', icon: FolderIcon },
-    { name: 'Upload', path: '/upload', icon: ArrowUpTrayIcon },
     { name: 'Documents', path: '/documents', icon: DocumentTextIcon },
     { name: 'Usage', path: '/usage', icon: ChartBarIcon },
     { name: 'Platform Docs', path: '/platform-docs', icon: BookOpenIcon },
-    { name: 'Profile', path: '/profile', icon: UserIcon },
   ];
 
   const getNavItemClasses = (path) => {
@@ -63,15 +61,16 @@ const Sidebar = () => {
           {/* Logo */}
           <div className={`flex items-center justify-between mb-8 ${isCollapsed ? 'justify-center px-0' : 'px-2'}`}>
             {!isCollapsed && (
-              <div className="flex items-center space-x-2">
-                <div className="bg-blue-600 p-1.5 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="bg-blue-600 p-2 rounded-xl shadow-md shadow-blue-500/20">
                   <DocumentTextIcon className="h-6 w-6 text-white" />
                 </div>
+                <span className="font-extrabold text-xl tracking-tight text-slate-900 dark:text-white">DOnC-key</span>
               </div>
             )}
 
             {isCollapsed && (
-              <div className="bg-blue-600 p-1.5 rounded-lg mb-4">
+              <div className="bg-blue-600 p-2 rounded-xl shadow-md shadow-blue-500/20 mb-4">
                 <DocumentTextIcon className="h-6 w-6 text-white" />
               </div>
             )}

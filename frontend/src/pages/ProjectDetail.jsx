@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
-import { DocumentTextIcon, KeyIcon, ClockIcon, CheckCircleIcon, XCircleIcon, ArrowLeftIcon, ArrowTopRightOnSquareIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { DocumentTextIcon, KeyIcon, ClockIcon, FolderIcon , CheckCircleIcon, XCircleIcon, ArrowLeftIcon, ArrowTopRightOnSquareIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { getProjectDetail } from '../utils/api';
 
 const ProjectDetail = () => {
@@ -111,29 +111,29 @@ const ProjectDetail = () => {
             {/* Back button */}
             <Link
                 to="/projects"
-                className={`inline-flex items-center mb-4 px-3 py-1 rounded-md ${theme === 'dark' ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`}
+                className="btn-secondary mb-4"
             >
                 <ArrowLeftIcon className="h-4 w-4 mr-1" />
                 Back to Projects
             </Link>
 
             {/* Project Header */}
-            <div className={`p-6 rounded-lg mb-6 ${theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
+            <div className="card-premium-no-hover p-6 mb-6">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                        <DocumentTextIcon className="h-8 w-8 text-blue-500 mr-4" />
+                        <FolderIcon className="h-10 w-10 text-blue-500 mr-4" />
                         <div>
-                            <h1 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{project.name}</h1>
-                            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Created: {formatDate(project.createdAt)}</p>
+                            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{project.name}</h1>
+                            <p className="text-xs text-slate-400 dark:text-slate-500">Created: {formatDate(project.createdAt)}</p>
                             {project.description && (
-                                <p className={`mt-2 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>{project.description}</p>
+                                <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{project.description}</p>
                             )}
                         </div>
                     </div>
                     <div className="flex space-x-3">
                         <Link
-                            to={`/upload?projectId=${project._id}`} // Pass projectId to Upload page
-                            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                            to={`/documents/upload?projectId=${project._id}`} // Pass projectId to Upload page
+                            className="btn-primary"
                         >
                             <PlusIcon className="h-5 w-5 mr-2" />
                             Add Document
@@ -143,47 +143,47 @@ const ProjectDetail = () => {
             </div>
 
             {/* Project Documents */}
-            <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
-                <h2 className={`text-lg font-semibold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Documents in this Project</h2>
+            <div className="card-premium-no-hover p-6">
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Documents in this Project</h2>
 
                 {documents.length === 0 ? (
-                    <div className={`p-8 text-center rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                        <DocumentTextIcon className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                        <h3 className={`text-lg font-medium mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>No documents in this project</h3>
-                        <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Add your first document to get started</p>
+                    <div className="p-8 text-center rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800/40">
+                        <DocumentTextIcon className="h-12 w-12 mx-auto mb-4 text-slate-400 dark:text-slate-500" />
+                        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">No documents in this project</h3>
+                        <p className="text-slate-500 dark:text-slate-400">Add your first document to get started</p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead className={theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}>
+                        <table className="min-w-full divide-y divide-slate-100 dark:divide-slate-800/60">
+                            <thead className="bg-slate-50 dark:bg-slate-900/60">
                                 <tr>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
                                         Document Name
                                     </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
                                         Status
                                     </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
                                         Uploaded
                                     </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
                                         Size
                                     </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
                                         API Key
                                     </th>
-                                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th scope="col" className="px-6 py-3 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">
                                         Actions
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className={theme === 'dark' ? 'bg-gray-800 divide-y divide-gray-700' : 'bg-white divide-y divide-gray-200'}>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/40">
                                 {documents.map((doc) => (
-                                    <tr key={doc._id || doc.id}>
+                                    <tr key={doc._id || doc.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-900/40 transition-colors">
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center">
                                                 <DocumentTextIcon className="h-5 w-5 text-blue-500 mr-3" />
-                                                <div className="text-sm font-medium text-gray-900 dark:text-white">{doc.fileName || doc.name}</div>
+                                                <div className="text-sm font-semibold text-slate-900 dark:text-white">{doc.fileName || doc.name}</div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
@@ -195,18 +195,18 @@ const ProjectDetail = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-500 dark:text-gray-400">{formatDate(doc.createdAt || doc.uploadedAt)}</div>
+                                            <div className="text-sm text-slate-500 dark:text-slate-400">{formatDate(doc.createdAt || doc.uploadedAt)}</div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-500 dark:text-gray-400">{doc.fileSize ? (doc.fileSize / 1024 / 1024).toFixed(2) + ' MB' : doc.size}</div>
+                                            <div className="text-sm text-slate-500 dark:text-slate-400">{doc.fileSize ? (doc.fileSize / 1024 / 1024).toFixed(2) + ' MB' : doc.size}</div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-mono text-gray-500 dark:text-gray-400 truncate max-w-xs">{doc.apiKey || '-'}</div>
+                                            <div className="text-sm font-mono text-slate-500 dark:text-slate-400 truncate max-w-xs">{doc.apiKey || '-'}</div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <Link
                                                 to={`/documents/${doc._id || doc.id}`}
-                                                className="inline-flex items-center px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                                className="btn-primary py-1.5 px-3.5"
                                             >
                                                 <ArrowTopRightOnSquareIcon className="h-4 w-4 mr-1" />
                                                 Open

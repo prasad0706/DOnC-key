@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
-import { PlayIcon, ClipboardIcon, InformationCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { PlayIcon, ClipboardIcon, CheckIcon, InformationCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 const TryApiTab = ({ documentId }) => {
   const { theme } = useTheme();
@@ -8,13 +8,8 @@ const TryApiTab = ({ documentId }) => {
   const [response, setResponse] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [copiedResponse, setCopiedResponse] = useState(false);
 
-  const cardClasses = `p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`;
-  const sectionTitleClasses = `text-lg font-semibold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`;
-  const textClasses = theme === 'dark' ? 'text-gray-300' : 'text-gray-600';
-  const codeClasses = `p-3 rounded-md break-all ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} text-sm font-mono`;
-
-  // Backend URL
   const baseUrl = `http://localhost:5000/api/v1`;
 
   const handleExecute = async () => {
@@ -57,96 +52,92 @@ const TryApiTab = ({ documentId }) => {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
+    setCopiedResponse(true);
+    setTimeout(() => setCopiedResponse(false), 1500);
   };
 
   return (
     <div className="space-y-6">
       {/* API Key Input */}
-      <div className={cardClasses}>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className={sectionTitleClasses}>API Key</h2>
-          <div className="flex items-center">
-            <InformationCircleIcon className="h-5 w-5 text-blue-500 mr-2" />
-            <span className={`text-sm ${textClasses}`}>Document-scoped key</span>
+      <div className="card-premium-no-hover p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-md font-bold text-slate-900 dark:text-white uppercase tracking-wider text-xs">Sandbox Authentication</h2>
+          <div className="flex items-center text-xs font-semibold text-slate-400 dark:text-slate-500">
+            <InformationCircleIcon className="h-4 w-4 mr-1.5 text-blue-500" />
+            <span>Document-scoped key</span>
           </div>
         </div>
 
-        <div className="flex space-x-2">
+        <div className="flex gap-2">
           <input
             type="password"
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
             placeholder="Enter your document API key"
-            className={`flex-1 px-4 py-2 rounded-md border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+            className="input-premium"
           />
-          <button
-            onClick={() => copyToClipboard(apiKey)}
-            disabled={!apiKey}
-            className={`p-2 rounded-md ${!apiKey ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`}
-            title="Copy to clipboard"
-          >
-            <ClipboardIcon className="h-5 w-5" />
-          </button>
         </div>
       </div>
 
-      {/* Endpoint Info */}
-      <div className={cardClasses}>
-        <h2 className={sectionTitleClasses}>Endpoint</h2>
-        <div className="flex items-center space-x-2 mb-4">
-          <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-bold rounded">GET</span>
-          <span className={`font-mono text-sm ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{baseUrl}/data</span>
+      {/* Endpoint Info & Trigger */}
+      <div className="card-premium-no-hover p-6 space-y-4">
+        <h2 className="text-md font-bold text-slate-900 dark:text-white uppercase tracking-wider text-xs">Interactive Request</h2>
+        <div className="flex items-center space-x-2.5 font-mono text-sm border border-slate-100 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-900/60 p-3 rounded-xl">
+          <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-500/20 text-[10px] font-bold rounded">GET</span>
+          <span className="text-xs text-slate-600 dark:text-slate-400 truncate">{baseUrl}/data</span>
         </div>
-      </div>
 
-      {/* Execute Button */}
-      <div className={cardClasses}>
         <button
           onClick={handleExecute}
-          disabled={loading}
-          className={`w-full flex items-center justify-center px-6 py-3 rounded-md text-white font-medium ${loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+          disabled={loading || !apiKey}
+          className="w-full btn-primary py-3 flex items-center justify-center gap-2"
         >
-          <PlayIcon className="h-5 w-5 mr-2" />
-          {loading ? 'Executing...' : 'Execute Request'}
+          <PlayIcon className="h-4 w-4" />
+          {loading ? 'Executing sandbox query...' : 'Execute Request'}
         </button>
       </div>
 
-      {/* Response */}
+      {/* Response Display */}
       {response && (
-        <div className={cardClasses}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className={sectionTitleClasses}>Response</h2>
+        <div className="card-premium-no-hover p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-md font-bold text-slate-900 dark:text-white uppercase tracking-wider text-xs">API Response</h2>
             <button
               onClick={() => copyToClipboard(JSON.stringify(response.data, null, 2))}
-              className={`p-2 rounded-md ${theme === 'dark' ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`}
-              title="Copy to clipboard"
+              className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
+              title="Copy response body"
             >
-              <ClipboardIcon className="h-4 w-4" />
+              {copiedResponse ? (
+                <CheckIcon className="h-4 w-4 text-emerald-500" />
+              ) : (
+                <ClipboardIcon className="h-4 w-4" />
+              )}
             </button>
           </div>
 
-          <div className="mb-4">
-            <div className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${response.status >= 200 && response.status < 300 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'}`}>
+          <div>
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
+              response.status >= 200 && response.status < 300 
+                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-500/20' 
+                : 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border border-rose-200/50 dark:border-rose-500/20'
+            }`}>
               {response.status} {response.statusText}
-            </div>
+            </span>
           </div>
 
-          <div className={codeClasses + ' overflow-auto max-h-96'}>
-            <pre>{JSON.stringify(response.data, null, 2)}</pre>
+          <div className="p-4 bg-slate-900 dark:bg-slate-950 rounded-xl border border-slate-800 text-xs font-mono text-slate-300 overflow-auto max-h-80">
+            <pre className="leading-normal">{JSON.stringify(response.data, null, 2)}</pre>
           </div>
         </div>
       )}
 
-      {/* Error */}
+      {/* Error Card */}
       {error && (
-        <div className={cardClasses}>
-          <div className="flex items-center mb-4">
-            <ExclamationTriangleIcon className="h-6 w-6 text-red-500 mr-2" />
-            <h2 className={sectionTitleClasses}>Error</h2>
-          </div>
-
-          <div className={`p-3 rounded-md ${theme === 'dark' ? 'bg-red-900/20 text-red-400' : 'bg-red-100 text-red-700'}`}>
-            {error}
+        <div className="p-4 rounded-xl border text-sm bg-rose-50 text-rose-700 border-rose-200/50 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20 flex items-start space-x-2.5">
+          <ExclamationTriangleIcon className="h-5 w-5 text-rose-500 flex-shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <p className="font-bold">Execution Failed</p>
+            <p className="text-xs text-rose-600 dark:text-rose-400/90 leading-relaxed font-medium">{error}</p>
           </div>
         </div>
       )}

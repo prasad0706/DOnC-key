@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { DocumentTextIcon, KeyIcon, ChartBarIcon, CloudArrowUpIcon, FolderIcon, PlusIcon } from '@heroicons/react/24/outline';
-import { uploadDocument, getDocuments, getProjects, createProject, getDashboardStats } from '../utils/api';
+import { uploadDocument, getProjects, createProject, getDashboardStats } from '../utils/api';
 
 const Dashboard = () => {
   const { theme } = useTheme();
@@ -20,7 +20,7 @@ const Dashboard = () => {
   const [newProjectName, setNewProjectName] = useState('');
   const [projectLoading, setProjectLoading] = useState(false);
 
-  // Mock data for dashboard cards
+  // Stats State
   const [stats, setStats] = useState({
     totalDocuments: 0,
     processingDocuments: 0,
@@ -29,7 +29,7 @@ const Dashboard = () => {
     readyDocuments: 0
   });
 
-  // Load real stats from API
+  // Load stats from API
   useEffect(() => {
     const loadStats = async () => {
       try {
@@ -86,7 +86,6 @@ const Dashboard = () => {
     setUploadProgress(0);
 
     try {
-      // Simulate upload progress
       const interval = setInterval(() => {
         setUploadProgress(prev => {
           if (prev >= 90) {
@@ -97,13 +96,9 @@ const Dashboard = () => {
         });
       }, 300);
 
-      // Actual upload
       const result = await uploadDocument(file, projectId);
-
-      // Complete progress
       setUploadProgress(100);
 
-      // Reset after 2 seconds
       setTimeout(() => {
         setIsUploading(false);
         setUploadProgress(0);
@@ -120,34 +115,29 @@ const Dashboard = () => {
     }
   };
 
-  const cardClasses = `p-6 rounded-2xl shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${theme === 'dark'
-    ? 'bg-gray-800 border border-gray-700/50 hover:border-gray-600'
-    : 'bg-white border border-gray-100 hover:border-blue-100'
-    }`;
-  const statTextClasses = theme === 'dark' ? 'text-gray-400 font-medium' : 'text-gray-500 font-medium';
-
   return (
-    <div className="p-6">
-      <h1 className={`text-2xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Dashboard</h1>
+    <div className="p-6 max-w-7xl mx-auto space-y-8">
+      {/* Page Title */}
+      <div>
+        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Dashboard</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">Overview of your document intelligence status.</p>
+      </div>
 
-      {/* Upload Section */}
-      <div className={`p-8 rounded-2xl mb-8 border-2 border-dashed transition-colors ${theme === 'dark'
-        ? 'bg-gray-800/50 border-gray-700 hover:border-blue-500/50 hover:bg-gray-800'
-        : 'bg-white border-gray-200 hover:border-blue-400 hover:bg-blue-50/30'
-        }`}>
-        <div className="flex flex-col items-center justify-center text-center">
-          <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-blue-500/10' : 'bg-blue-50'}`}>
-            <CloudArrowUpIcon className="h-10 w-10 text-blue-500" />
+      {/* Upload Section Card */}
+      <div className="card-premium-no-hover p-8 relative overflow-hidden backdrop-blur-md bg-white/50 dark:bg-[#0f172a]/40">
+        <div className="flex flex-col items-center justify-center text-center max-w-lg mx-auto">
+          <div className="p-4 rounded-2xl mb-5 bg-blue-50 dark:bg-blue-950/35 text-blue-600 dark:text-blue-400 shadow-inner">
+            <CloudArrowUpIcon className="h-8 w-8" />
           </div>
 
-          <h2 className={`text-xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
             Upload Document
           </h2>
-          <p className={`mb-6 max-w-md ${statTextClasses}`}>
-            Drag and drop your files here, or click to browse. Supported formats: PDF, DOCX, XLSX, CSV, JPG, PNG, GIF.
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 font-medium leading-relaxed">
+            Drag & drop or browse to process your file. Supported formats: PDF, DOCX, XLSX, CSV, JPG, PNG, GIF. (Max 10MB)
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center gap-4 w-full max-w-md">
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full">
             <input
               type="file"
               onChange={handleFileChange}
@@ -157,32 +147,29 @@ const Dashboard = () => {
             />
             <label
               htmlFor="document-upload"
-              className={`flex-1 w-full px-6 py-3 rounded-xl cursor-pointer font-medium transition-colors text-center ${theme === 'dark'
-                ? 'bg-gray-700 hover:bg-gray-600 text-white border border-gray-600'
-                : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 shadow-sm'
-                }`}
+              className="flex-1 w-full px-5 py-3 rounded-xl cursor-pointer font-semibold transition-all duration-200 text-center text-sm border bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-800/80 dark:hover:text-white truncate"
             >
               {file ? file.name : 'Choose File'}
             </label>
             <button
               onClick={handleInitiateUpload}
               disabled={!file || isUploading}
-              className={`w-full sm:w-auto px-8 py-3 bg-blue-600 text-white rounded-xl font-medium shadow-lg shadow-blue-500/30 hover:bg-blue-700 hover:shadow-blue-500/40 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${(!file || isUploading) ? 'opacity-50 cursor-not-allowed shadow-none' : ''}`}
+              className="w-full sm:w-auto btn-primary py-3 px-8 text-sm"
             >
               {isUploading ? 'Uploading...' : 'Upload'}
             </button>
           </div>
 
           {isUploading && (
-            <div className="mt-8 w-full max-w-md">
-              <div className={`w-full rounded-full h-2 ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'}`}>
+            <div className="mt-8 w-full">
+              <div className="w-full rounded-full h-1.5 bg-slate-100 dark:bg-slate-800">
                 <div
-                  className="bg-blue-500 h-2 rounded-full transition-all duration-300 ease-out"
+                  className="bg-blue-500 h-1.5 rounded-full transition-all duration-300 ease-out"
                   style={{ width: `${uploadProgress}%` }}
                 ></div>
               </div>
-              <p className={`text-sm mt-3 font-medium ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
-                {uploadProgress}% complete
+              <p className="text-xs mt-3 font-semibold text-blue-600 dark:text-blue-400">
+                {uploadProgress}% Uploading...
               </p>
             </div>
           )}
@@ -190,93 +177,85 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Total Documents */}
-        <div className={cardClasses}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className={statTextClasses}>Total Documents</p>
-              <p className={`text-4xl font-bold mt-2 tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                {stats.totalDocuments}
-              </p>
-            </div>
-            <div className={`p-3 rounded-xl ${theme === 'dark' ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
-              <DocumentTextIcon className="h-8 w-8" />
-            </div>
+        <div className="card-premium p-6 flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Total Documents</p>
+            <p className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+              {stats.totalDocuments}
+            </p>
+          </div>
+          <div className="p-3.5 rounded-xl bg-blue-50 dark:bg-blue-950/45 text-blue-600 dark:text-blue-400">
+            <DocumentTextIcon className="h-6 w-6" />
           </div>
         </div>
 
         {/* Processing Status */}
-        <div className={cardClasses}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className={statTextClasses}>Processing</p>
-              <p className={`text-4xl font-bold mt-2 tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                {stats.processingDocuments}
-              </p>
-            </div>
-            <div className={`p-3 rounded-xl ${theme === 'dark' ? 'bg-yellow-500/10 text-yellow-400' : 'bg-yellow-50 text-yellow-600'}`}>
-              <div className="flex items-center justify-center h-8 w-8">
-                <div className="h-3 w-3 rounded-full bg-current animate-pulse"></div>
-              </div>
+        <div className="card-premium p-6 flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Processing</p>
+            <p className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+              {stats.processingDocuments}
+            </p>
+          </div>
+          <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/45 text-amber-600 dark:text-amber-400">
+            <div className="flex items-center justify-center h-6 w-6">
+              <span className="relative flex h-3.5 w-3.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-amber-500"></span>
+              </span>
             </div>
           </div>
         </div>
 
         {/* API Keys */}
-        <div className={cardClasses}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className={statTextClasses}>API Keys</p>
-              <p className={`text-4xl font-bold mt-2 tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                {stats.apiKeys}
-              </p>
-            </div>
-            <div className={`p-3 rounded-xl ${theme === 'dark' ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-50 text-purple-600'}`}>
-              <KeyIcon className="h-8 w-8" />
-            </div>
+        <div className="card-premium p-6 flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">API Keys</p>
+            <p className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+              {stats.apiKeys}
+            </p>
+          </div>
+          <div className="p-3.5 rounded-xl bg-purple-50 dark:bg-purple-950/45 text-purple-600 dark:text-purple-400">
+            <KeyIcon className="h-6 w-6" />
           </div>
         </div>
 
         {/* Total API Calls */}
-        <div className={cardClasses}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className={statTextClasses}>API Calls</p>
-              <p className={`text-4xl font-bold mt-2 tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                {stats.totalApiCalls}
-              </p>
-            </div>
-            <div className={`p-3 rounded-xl ${theme === 'dark' ? 'bg-green-500/10 text-green-400' : 'bg-green-50 text-green-600'}`}>
-              <ChartBarIcon className="h-8 w-8" />
-            </div>
+        <div className="card-premium p-6 flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">API Calls</p>
+            <p className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+              {stats.totalApiCalls}
+            </p>
+          </div>
+          <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/45 text-emerald-600 dark:text-emerald-400">
+            <ChartBarIcon className="h-6 w-6" />
           </div>
         </div>
       </div>
+
+      {/* Select Project Modal Portal */}
       {showProjectModal && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-          onClick={() => {
-            setShowProjectModal(false);
-            setIsCreatingProject(false);
-          }}>
-          <div className={`w-full max-w-md rounded-xl shadow-2xl overflow-hidden ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}
-            onClick={e => e.stopPropagation()}>
-            <div className="p-6">
-              <h3 className={`text-xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+        <div className="backdrop-glass" onClick={() => { setShowProjectModal(false); setIsCreatingProject(false); }}>
+          <div className="modal-theme" onClick={e => e.stopPropagation()}>
+            <div>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
                 Select Project
               </h3>
-              <p className={`mb-6 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              <p className="mb-6 text-sm text-slate-500 dark:text-slate-400 font-medium">
                 Choose a project to add this document to, or create a new one.
               </p>
 
               {!isCreatingProject ? (
-                <>
-                  <div className="mb-4">
-                    <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                <div className="space-y-5">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
                       Existing Projects
                     </label>
                     <select
-                      className={`w-full px-3 py-2 rounded-lg border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                      className="input-premium focus:ring-4 focus:ring-blue-500/10"
                       value={selectedProjectId}
                       onChange={(e) => setSelectedProjectId(e.target.value)}
                     >
@@ -288,52 +267,54 @@ const Dashboard = () => {
                   </div>
 
                   <div className="flex items-center my-4">
-                    <div className={`flex-grow border-t ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}></div>
-                    <span className={`px-3 text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>OR</span>
-                    <div className={`flex-grow border-t ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}></div>
+                    <div className="flex-grow border-t border-slate-100 dark:border-slate-800/60"></div>
+                    <span className="px-3 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">OR</span>
+                    <div className="flex-grow border-t border-slate-100 dark:border-slate-800/60"></div>
                   </div>
 
                   <button
                     onClick={() => setIsCreatingProject(true)}
-                    className={`w-full py-2 px-4 rounded-lg border border-dashed flex items-center justify-center gap-2 transition-colors ${theme === 'dark' ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-600 hover:bg-gray-50'}`}
+                    className="w-full py-3 px-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors flex items-center justify-center gap-2 text-sm font-semibold cursor-pointer"
                   >
-                    <PlusIcon className="h-5 w-5" />
+                    <PlusIcon className="h-4 w-4" />
                     Create New Project
                   </button>
-                </>
+                </div>
               ) : (
-                <div className="mb-4">
-                  <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                    New Project Name
-                  </label>
-                  <input
-                    type="text"
-                    autoFocus
-                    value={newProjectName}
-                    onChange={e => setNewProjectName(e.target.value)}
-                    placeholder="e.g. Q1 Financials"
-                    className={`w-full px-3 py-2 rounded-lg border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:ring-2 focus:ring-blue-500`}
-                  />
-                  <button
-                    onClick={() => setIsCreatingProject(false)}
-                    className={`text-sm mt-2 ${theme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}
-                  >
-                    &larr; Back to select existing
-                  </button>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+                      New Project Name
+                    </label>
+                    <input
+                      type="text"
+                      autoFocus
+                      value={newProjectName}
+                      onChange={e => setNewProjectName(e.target.value)}
+                      placeholder="e.g. Q1 Financials"
+                      className="input-premium"
+                    />
+                    <button
+                      onClick={() => setIsCreatingProject(false)}
+                      className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline mt-2 inline-block"
+                    >
+                      &larr; Back to select existing
+                    </button>
+                  </div>
                 </div>
               )}
 
               <div className="flex justify-end gap-3 mt-8">
                 <button
                   onClick={() => setShowProjectModal(false)}
-                  className={`px-4 py-2 rounded-lg ${theme === 'dark' ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`}
+                  className="btn-secondary"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => isCreatingProject ? handleCreateProjectAndUpload() : executeUpload(selectedProjectId)}
                   disabled={isCreatingProject ? !newProjectName.trim() : !selectedProjectId}
-                  className={`px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed`}
+                  className="btn-primary"
                 >
                   {isCreatingProject ? 'Create & Upload' : 'Upload'}
                 </button>

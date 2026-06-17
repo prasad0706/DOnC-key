@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
-import { DocumentTextIcon, ClockIcon, CheckCircleIcon, XCircleIcon, KeyIcon, ArrowLeftIcon, TableCellsIcon, CodeBracketIcon, PlayIcon, ChatBubbleLeftRightIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
-import { getDocumentDetail, generateApiKey, getApiKeys, revokeApiKey, exportDocument } from '../utils/api';
+import { DocumentTextIcon, ClockIcon, CheckCircleIcon, XCircleIcon, KeyIcon, ArrowLeftIcon, TableCellsIcon, ChatBubbleLeftRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { getDocumentDetail, generateApiKey, getApiKeys, revokeApiKey } from '../utils/api';
 import StructureTab from '../components/StructureTab';
 import ApiDocsTab from '../components/ApiDocsTab';
 import TryApiTab from '../components/TryApiTab';
@@ -24,7 +24,6 @@ const DocumentDetail = () => {
   useEffect(() => {
     const fetchDocument = async () => {
       try {
-        // Real API call to fetch document details
         const data = await getDocumentDetail(id);
         setDocument(data);
         setLoading(false);
@@ -40,34 +39,30 @@ const DocumentDetail = () => {
 
   // Fetch API keys when the API Keys tab is activated
   useEffect(() => {
-    if (activeTab === 'api-keys' && id) {
-      const fetchApiKeys = async () => {
+    if (activeTab === 'api-integration' && id) {
+      const fetchKeys = async () => {
         setApiKeysLoading(true);
         try {
           const keys = await getApiKeys(id);
           setApiKeys(keys);
         } catch (err) {
           console.error('Error fetching API keys:', err);
-          // Show error but don't set error state to avoid disrupting the whole page
         }
         setApiKeysLoading(false);
       };
-      fetchApiKeys();
+      fetchKeys();
     }
   }, [activeTab, id]);
 
   const handleGenerateApiKey = async () => {
     try {
-      // Real API call to generate API key
       const key = await generateApiKey(id);
       setGeneratedKey(key);
       setShowKeyModal(true);
-      // Fetch updated keys list
       const keys = await getApiKeys(id);
       setApiKeys(keys);
     } catch (err) {
       console.error('Error generating API key:', err);
-      // Handle error
     }
   };
 
@@ -75,7 +70,6 @@ const DocumentDetail = () => {
     if (window.confirm('Are you sure you want to revoke this API key? This action cannot be undone.')) {
       try {
         await revokeApiKey(id, keyId);
-        // Fetch updated keys list
         const keys = await getApiKeys(id);
         setApiKeys(keys);
       } catch (err) {
@@ -84,18 +78,33 @@ const DocumentDetail = () => {
     }
   };
 
+  const getStatusBadgeClass = (status) => {
+    switch (status) {
+      case 'ready':
+        return 'badge-status-ready';
+      case 'processing':
+        return 'badge-status-processing';
+      case 'queued':
+        return 'badge-status-queued';
+      case 'failed':
+        return 'badge-status-failed';
+      default:
+        return 'badge-premium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+    }
+  };
+
   const getStatusIcon = (status) => {
     switch (status) {
       case 'ready':
-        return <CheckCircleIcon className="h-5 w-5 text-green-500" />;
+        return <CheckCircleIcon className="h-4 w-4 mr-1.5" />;
       case 'processing':
-        return <ClockIcon className="h-5 w-5 text-yellow-500" />;
+        return <ClockIcon className="h-4 w-4 mr-1.5 animate-pulse" />;
       case 'queued':
-        return <ClockIcon className="h-5 w-5 text-blue-500" />;
+        return <ClockIcon className="h-4 w-4 mr-1.5" />;
       case 'failed':
-        return <XCircleIcon className="h-5 w-5 text-red-500" />;
+        return <XCircleIcon className="h-4 w-4 mr-1.5" />;
       default:
-        return <DocumentTextIcon className="h-5 w-5 text-gray-400" />;
+        return <DocumentTextIcon className="h-4 w-4 mr-1.5" />;
     }
   };
 
@@ -121,8 +130,7 @@ const DocumentDetail = () => {
       month: 'long',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
+      minute: '2-digit'
     });
   };
 
@@ -139,7 +147,7 @@ const DocumentDetail = () => {
   if (error) {
     return (
       <div className="p-6">
-        <div className={`p-4 rounded-md ${theme === 'dark' ? 'bg-red-900/20 text-red-400' : 'bg-red-100 text-red-700'}`}>
+        <div className="p-4 rounded-xl border bg-rose-50 text-rose-700 border-rose-200/50 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20">
           {error}
         </div>
       </div>
@@ -149,317 +157,270 @@ const DocumentDetail = () => {
   if (!document) {
     return (
       <div className="p-6">
-        <div className={`p-8 text-center rounded-lg ${theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-gray-50 border border-gray-200'}`}>
+        <div className="card-premium-no-hover p-12 text-center flex flex-col items-center justify-center">
           <DocumentTextIcon className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-          <h2 className={`text-lg font-medium mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Document not found</h2>
-          <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>The requested document does not exist</p>
+          <h2 className="text-lg font-bold mb-2 text-slate-900 dark:text-white">Document not found</h2>
+          <p className="text-slate-500 dark:text-slate-400">The requested document does not exist.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 max-w-7xl mx-auto space-y-6">
       {/* Back button */}
       <button
         onClick={() => navigate(-1)}
-        className={`inline-flex items-center mb-4 px-3 py-1 rounded-md ${theme === 'dark' ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`}
+        className="btn-secondary"
       >
-        <ArrowLeftIcon className="h-4 w-4 mr-1" />
-        Back to Documents
+        <ArrowLeftIcon className="h-4 w-4 mr-1.5" />
+        Back
       </button>
 
-      {/* Document Header */}
-      <div className={`p-6 rounded-lg mb-6 ${theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <DocumentTextIcon className="h-8 w-8 text-blue-500 mr-4" />
+      {/* Document Header Card */}
+      <div className="card-premium-no-hover p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center space-x-4">
+            <div className="p-3.5 rounded-xl bg-blue-50 dark:bg-blue-950/45 text-blue-600 dark:text-blue-400">
+              <DocumentTextIcon className="h-7 w-7" />
+            </div>
             <div>
-              <h1 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{document.name}</h1>
+              <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">{document.name}</h1>
               <div className="flex items-center mt-2">
-                {getStatusIcon(document.status)}
-                <span className={`ml-2 text-sm ${document.status === 'ready' ? 'text-green-500' : document.status === 'failed' ? 'text-red-500' : 'text-yellow-500'}`}>
+                <span className={getStatusBadgeClass(document.status)}>
+                  {getStatusIcon(document.status)}
                   {getStatusText(document.status)}
                 </span>
               </div>
             </div>
           </div>
-          <div className="text-right">
-            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Uploaded: {formatDate(document.uploadedAt)}</p>
-            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Size: {document.size}</p>
+          <div className="text-left sm:text-right text-xs font-semibold text-slate-400 dark:text-slate-500 space-y-1">
+            <p>Uploaded: {formatDate(document.uploadedAt)}</p>
+            <p>Size: {document.size}</p>
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
-        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-          <button
-            onClick={() => setActiveTab('overview')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center ${activeTab === 'overview'
-              ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-              : `border-transparent ${theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`
-              }`}
-          >
-            <DocumentTextIcon className="h-4 w-4 mr-1" />
-            Overview
-          </button>
-          <button
-            onClick={() => setActiveTab('structure')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center ${activeTab === 'structure'
-              ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-              : `border-transparent ${theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`
-              }`}
-          >
-            <TableCellsIcon className="h-4 w-4 mr-1" />
-            Structure
-          </button>
-          <button
-            onClick={() => setActiveTab('api-keys')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center ${activeTab === 'api-keys'
-              ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-              : `border-transparent ${theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`
-              }`}
-          >
-            <KeyIcon className="h-4 w-4 mr-1" />
-            API Keys
-          </button>
-          <button
-            onClick={() => setActiveTab('api-docs')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center ${activeTab === 'api-docs'
-              ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-              : `border-transparent ${theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`
-              }`}
-          >
-            <CodeBracketIcon className="h-4 w-4 mr-1" />
-            API Docs
-          </button>
-          <button
-            onClick={() => setActiveTab('try-api')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center ${activeTab === 'try-api'
-              ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-              : `border-transparent ${theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`
-              }`}
-          >
-            <PlayIcon className="h-4 w-4 mr-1" />
-            Try API
-          </button>
-          <button
-            onClick={() => setActiveTab('chat')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center ${activeTab === 'chat'
-              ? 'border-purple-500 text-purple-600 dark:text-purple-400'
-              : `border-transparent ${theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`
-              }`}
-          >
-            <ChatBubbleLeftRightIcon className="h-4 w-4 mr-1" />
-            Chat
-          </button>
+      {/* Modern Tabs Bar */}
+      <div className="border-b border-slate-200 dark:border-slate-800/80">
+        <nav className="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
+          {[
+            { id: 'overview', name: 'Overview', icon: DocumentTextIcon },
+            { id: 'structure', name: 'Structure', icon: TableCellsIcon },
+            { id: 'api-integration', name: 'API Integration', icon: KeyIcon },
+            { id: 'chat', name: 'AI Chat', icon: ChatBubbleLeftRightIcon },
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`py-4 px-1 border-b-2 font-semibold text-sm flex items-center gap-2 transition-all duration-200 cursor-pointer ${
+                  isActive ? 'tab-button-active' : 'tab-button-inactive'
+                }`}
+              >
+                <Icon className="h-4.5 w-4.5" />
+                {tab.name}
+              </button>
+            );
+          })}
         </nav>
       </div>
 
       {/* Tab Content */}
-      {activeTab === 'overview' && (
-        <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
-          <h2 className={`text-lg font-semibold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Document Overview</h2>
+      <div className="space-y-6">
+        {activeTab === 'overview' && (
+          <div className="card-premium-no-hover p-6 md:p-8 space-y-6">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Document Details</h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div>
-              <p className={`text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Status</p>
-              <p className={`text-lg font-semibold ${document.status === 'ready' ? 'text-green-500' : document.status === 'failed' ? 'text-red-500' : 'text-yellow-500'}`}>
-                {getStatusText(document.status)}
-              </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 text-sm">
+              <div className="space-y-1.5">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Pipeline Status</p>
+                <p className={`font-bold ${document.status === 'ready' ? 'text-green-500' : document.status === 'failed' ? 'text-red-500' : 'text-amber-500'}`}>
+                  {getStatusText(document.status)}
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Upload Date</p>
+                <p className="font-bold text-slate-800 dark:text-slate-200">
+                  {formatDate(document.uploadedAt)}
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">File Payload Size</p>
+                <p className="font-bold text-slate-800 dark:text-slate-200">
+                  {document.size}
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Format</p>
+                <p className="font-bold text-slate-800 dark:text-slate-200 uppercase">
+                  {document.fileType || 'Unknown'}
+                </p>
+              </div>
             </div>
 
-            <div>
-              <p className={`text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Upload Time</p>
-              <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                {formatDate(document.uploadedAt)}
-              </p>
-            </div>
-
-            <div>
-              <p className={`text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>File Size</p>
-              <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                {document.size}
-              </p>
-            </div>
-
-            <div>
-              <p className={`text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Processing Result</p>
-              <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                {document.processingResult?.extractedText || 'Not processed yet'}
-              </p>
-            </div>
-          </div>
-
-          {/* Primary CTA */}
-          {document.status === 'ready' && (
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-              <button
-                onClick={handleGenerateApiKey}
-                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              >
-                <KeyIcon className="h-5 w-5 mr-2" />
-                Generate API Key
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {activeTab === 'structure' && (
-        <StructureTab document={document} />
-      )}
-
-      {activeTab === 'api-keys' && (
-        <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>API Keys</h2>
             {document.status === 'ready' && (
-              <button
-                onClick={handleGenerateApiKey}
-                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              >
-                <KeyIcon className="h-5 w-5 mr-2" />
-                Generate New Key
-              </button>
+              <div className="pt-6 border-t border-slate-100 dark:border-slate-800/60">
+                <button
+                  onClick={() => setActiveTab('api-integration')}
+                  className="btn-primary"
+                >
+                  <KeyIcon className="h-4 w-4 mr-2" />
+                  Configure API Keys
+                </button>
+              </div>
             )}
           </div>
+        )}
 
-          {/* Display real API keys data */}
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className={theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}>
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Key ID
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Created
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Usage
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className={theme === 'dark' ? 'bg-gray-800 divide-y divide-gray-700' : 'bg-white divide-y divide-gray-200'}>
-                {apiKeysLoading ? (
-                  <tr>
-                    <td colSpan="5" className="px-6 py-4 text-center whitespace-nowrap">
-                      <div className="flex justify-center items-center">
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
-                        <span className="ml-2">Loading API keys...</span>
-                      </div>
-                    </td>
-                  </tr>
-                ) : apiKeys && apiKeys.length > 0 ? (
-                  apiKeys.map((key) => (
-                    <tr key={key.id || key._id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
-                          {key.keyPrefix ? `${key.keyPrefix}...` : 'N/A'}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          key.revoked
-                            ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                            : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                        }`}>
-                          {key.revoked ? 'Revoked' : 'Active'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          {key.createdAt ? formatDate(key.createdAt) : 'Just now'}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500 dark:text-gray-400">Active</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        {!key.revoked && (
-                          <button
-                            onClick={() => handleRevokeApiKey(key.id || key._id)}
-                            className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
-                          >
-                            Revoke
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="5" className="px-6 py-4 text-center whitespace-nowrap">
-                      <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>No API keys generated yet</p>
-                    </td>
-                  </tr>
+        {activeTab === 'structure' && (
+          <StructureTab document={document} />
+        )}
+
+        {activeTab === 'api-integration' && (
+          <div className="space-y-8">
+            {/* API Keys Table Card */}
+            <div className="card-premium-no-hover p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">API Credentials</h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Generate keys to query structured outputs externally.</p>
+                </div>
+                {document.status === 'ready' && (
+                  <button
+                    onClick={handleGenerateApiKey}
+                    className="btn-primary"
+                  >
+                    <KeyIcon className="h-4 w-4 mr-2" />
+                    New API Key
+                  </button>
                 )}
-              </tbody>
-            </table>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-slate-100 dark:divide-slate-800/40">
+                  <thead>
+                    <tr>
+                      <th scope="col" className="table-header-premium">Key prefix</th>
+                      <th scope="col" className="table-header-premium">Status</th>
+                      <th scope="col" className="table-header-premium">Created</th>
+                      <th scope="col" className="table-header-premium text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/40">
+                    {apiKeysLoading ? (
+                      <tr>
+                        <td colSpan="4" className="px-6 py-6 text-center text-xs font-semibold text-slate-400 dark:text-slate-500">
+                          <div className="flex justify-center items-center gap-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                            <span>Fetching access profile...</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : apiKeys && apiKeys.length > 0 ? (
+                      apiKeys.map((key) => (
+                        <tr key={key.id || key._id} className="table-row-premium">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-slate-900 dark:text-slate-200">
+                            {key.keyPrefix ? `${key.keyPrefix}...` : 'N/A'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`badge-premium ${
+                              key.revoked
+                                ? 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border border-rose-200/50 dark:border-rose-500/20'
+                                : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-500/20'
+                            }`}>
+                              {key.revoked ? 'Revoked' : 'Active'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-xs font-medium text-slate-500 dark:text-slate-400">
+                            {key.createdAt ? formatDate(key.createdAt) : 'Just now'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right">
+                            {!key.revoked && (
+                              <button
+                                onClick={() => handleRevokeApiKey(key.id || key._id)}
+                                className="btn-danger p-1 text-xs px-3.5"
+                              >
+                                Revoke
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="4" className="px-6 py-8 text-center text-xs font-semibold text-slate-400 dark:text-slate-500">
+                          No external keys configured yet.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* API Docs and Try API side-by-side */}
+            {document.status === 'ready' && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                <ApiDocsTab documentId={document.id || document._id} />
+                <TryApiTab documentId={document.id || document._id} />
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        )}
 
-      {activeTab === 'api-docs' && (
-        <ApiDocsTab documentId={document.id} />
-      )}
+        {activeTab === 'chat' && (
+          <ChatTab documentId={document.id || document._id} documentStatus={document.status} />
+        )}
+      </div>
 
-      {activeTab === 'try-api' && (
-        <TryApiTab documentId={document.id} />
-      )}
-
-      {activeTab === 'chat' && (
-        <ChatTab documentId={document.id || document._id} documentStatus={document.status} />
-      )}
-
-      {/* API Key Modal */}
-      {showKeyModal && generatedKey && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`p-6 rounded-lg max-w-md w-full mx-4 ${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}`}>
+      {/* Generated Key Modal Portal */}
+      {showKeyModal && generatedKey && createPortal(
+        <div className="backdrop-glass">
+          <div className="modal-theme" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-start mb-4">
-              <h2 className="text-lg font-semibold">API Key Generated</h2>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">API Key Generated</h2>
               <button
                 onClick={() => setShowKeyModal(false)}
-                className={theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-700'}
+                className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/80 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
               >
-                <XCircleIcon className="h-6 w-6" />
+                <XMarkIcon className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="mb-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">This is your API key. Copy it now as it will not be shown again.</p>
-              <div className={`p-3 rounded-md break-all ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'}`}>
+            <div className="space-y-4">
+              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+                Here is your secret document API key. Save it now as it will not be shown again.
+              </p>
+              <div className="p-4 bg-slate-900 dark:bg-slate-950 rounded-xl border border-slate-800 text-xs font-mono text-emerald-400 break-all leading-normal">
                 {generatedKey.apiKey || generatedKey.key}
               </div>
             </div>
 
-            <div className="flex space-x-3">
+            <div className="flex space-x-3 mt-8">
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(generatedKey.apiKey || generatedKey.key);
-                  // Show some feedback that it was copied
                 }}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="flex-1 btn-primary"
               >
                 Copy to Clipboard
               </button>
               <button
                 onClick={() => setShowKeyModal(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="flex-1 btn-secondary"
               >
                 Close
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

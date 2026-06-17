@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
-import { DocumentTextIcon, CloudArrowUpIcon, FolderIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { DocumentTextIcon, CloudArrowUpIcon, FolderIcon, PlusIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { uploadDocument, getProjects, createProject } from '../utils/api';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -26,8 +26,6 @@ const UploadDocument = () => {
         setLoadingProjects(true);
         const data = await getProjects();
         setProjects(data);
-
-        // If projectId param exists, verify it exists in fetched projects (optional but good)
       } catch (err) {
         console.error("Failed to fetch projects", err);
       } finally {
@@ -72,7 +70,6 @@ const UploadDocument = () => {
     setError(null);
 
     try {
-      // Simulate upload progress
       const interval = setInterval(() => {
         setUploadProgress(prev => {
           if (prev >= 90) {
@@ -83,16 +80,12 @@ const UploadDocument = () => {
         });
       }, 300);
 
-      // Actual upload
       const result = await uploadDocument(file, selectedProjectId);
-
-      // Complete progress
       setUploadProgress(100);
       clearInterval(interval);
 
       console.log('Upload result:', result);
 
-      // Navigate back to project
       setTimeout(() => {
         setIsUploading(false);
         setUploadProgress(0);
@@ -108,46 +101,46 @@ const UploadDocument = () => {
     }
   };
 
-  const cardClasses = `p-6 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`;
-  const statTextClasses = theme === 'dark' ? 'text-gray-300' : 'text-gray-600';
-
   return (
-    <div className="p-6 max-w-2xl mx-auto">
-      <div className="flex items-center mb-6">
+    <div className="p-6 max-w-2xl mx-auto space-y-6">
+      {/* Back button & Page Title */}
+      <div className="flex items-center space-x-3">
         <button
           onClick={() => navigate(-1)}
-          className={`mr-4 p-2 rounded-md ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+          className="btn-secondary p-2.5 rounded-xl"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
-          </svg>
+          <ArrowLeftIcon className="h-4 w-4" />
         </button>
-        <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Upload Document</h1>
+        <div>
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Upload Document</h1>
+          <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">Add documents to your custom data projects.</p>
+        </div>
       </div>
 
       {error && (
-        <div className={`mb-4 p-3 rounded-md ${theme === 'dark' ? 'bg-red-900/20 text-red-400' : 'bg-red-100 text-red-700'}`}>
+        <div className="p-4 rounded-xl border text-sm bg-rose-50 text-rose-700 border-rose-200/50 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20">
           {error}
         </div>
       )}
 
-      <div className={cardClasses}>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Upload New Document</h2>
+      {/* Main Upload Box */}
+      <div className="card-premium-no-hover p-8 space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">New Document Pipeline</h2>
           <CloudArrowUpIcon className="h-6 w-6 text-blue-500" />
         </div>
 
         {/* Project Selection */}
-        <div className="mb-6">
-          <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-            Project
+        <div className="space-y-2">
+          <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            Project Association
           </label>
 
           {!isCreatingProject ? (
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <select
-                  className={`w-full px-3 py-2 rounded-md border appearance-none ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  className="input-premium focus:ring-4 focus:ring-blue-500/10 pr-10 appearance-none"
                   value={selectedProjectId}
                   onChange={(e) => setSelectedProjectId(e.target.value)}
                   disabled={isUploading}
@@ -157,14 +150,15 @@ const UploadDocument = () => {
                     <option key={p._id} value={p._id}>{p.name}</option>
                   ))}
                 </select>
-                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
+                <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
                   <FolderIcon className="h-4 w-4" />
                 </div>
               </div>
               <button
                 onClick={() => setIsCreatingProject(true)}
-                className={`px-3 py-2 rounded-md border ${theme === 'dark' ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-600 hover:bg-gray-50'}`}
+                className="btn-secondary py-2.5 px-3.5 rounded-xl flex items-center justify-center"
                 title="Create New Project"
+                disabled={isUploading}
               >
                 <PlusIcon className="h-5 w-5" />
               </button>
@@ -176,19 +170,19 @@ const UploadDocument = () => {
                 value={newProjectName}
                 onChange={(e) => setNewProjectName(e.target.value)}
                 placeholder="New Project Name"
-                className={`flex-1 px-3 py-2 rounded-md border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                className="input-premium"
                 autoFocus
               />
               <button
                 onClick={handleCreateProject}
                 disabled={!newProjectName.trim()}
-                className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                className="btn-primary py-2.5 px-5"
               >
                 Create
               </button>
               <button
                 onClick={() => setIsCreatingProject(false)}
-                className={`px-3 py-2 rounded-md border ${theme === 'dark' ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-600 hover:bg-gray-50'}`}
+                className="btn-secondary py-2.5 px-4"
               >
                 Cancel
               </button>
@@ -196,13 +190,13 @@ const UploadDocument = () => {
           )}
         </div>
 
-        <div className="mb-4">
-          <p className={statTextClasses}>
-            Supported formats: PDF, DOCX, XLSX, CSV, JPG, PNG, GIF (Max size: 10MB)
-          </p>
-        </div>
+        {/* Supported formats */}
+        <p className="text-xs font-semibold text-slate-400 dark:text-slate-500">
+          Supported formats: PDF, DOCX, XLSX, CSV, JPG, PNG, GIF (Max size: 10MB)
+        </p>
 
-        <div className="flex items-center space-x-4">
+        {/* File Pick Container */}
+        <div className="flex flex-col sm:flex-row items-center gap-3">
           <input
             type="file"
             onChange={handleFileChange}
@@ -213,44 +207,41 @@ const UploadDocument = () => {
           />
           <label
             htmlFor="document-upload"
-            className={`flex-1 px-4 py-2 border rounded-md cursor-pointer transition-colors ${theme === 'dark'
-              ? (isUploading ? 'border-gray-600 bg-gray-700 text-gray-400' : 'border-gray-600 bg-gray-700 text-white hover:bg-gray-600')
-              : (isUploading ? 'border-gray-300 bg-gray-100 text-gray-400' : 'border-gray-300 bg-white text-gray-900 hover:bg-gray-50')
+            className={`flex-1 w-full px-5 py-3 border rounded-xl cursor-pointer text-sm font-semibold transition-all duration-200 text-center truncate ${isUploading
+              ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed dark:bg-slate-900/60 dark:border-slate-800 dark:text-slate-500'
+              : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-800/80 dark:hover:text-white'
               }`}
           >
-            {file ? file.name : 'Choose a file (PDF, DOCX, XLSX, CSV, JPG, PNG, GIF)'}
+            {file ? file.name : 'Choose File'}
           </label>
           <button
             onClick={handleUpload}
             disabled={!file || isUploading || !selectedProjectId}
-            className={`px-4 py-2 bg-blue-600 text-white rounded-md transition-colors ${(!file || isUploading || !selectedProjectId)
-              ? 'opacity-50 cursor-not-allowed'
-              : 'hover:bg-blue-700'
-              }`}
+            className="w-full sm:w-auto btn-primary py-3 px-8 text-sm"
           >
             {isUploading ? 'Uploading...' : 'Upload'}
           </button>
         </div>
 
         {isUploading && (
-          <div className="mt-4">
-            <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+          <div className="space-y-2">
+            <div className="w-full bg-slate-100 rounded-full h-1.5 dark:bg-slate-800">
               <div
-                className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
                 style={{ width: `${uploadProgress}%` }}
               ></div>
             </div>
-            <p className={`text-sm mt-1 ${statTextClasses}`}>{uploadProgress}% complete</p>
+            <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">{uploadProgress}% complete</p>
           </div>
         )}
 
-        <div className="mt-6 text-sm text-gray-500 dark:text-gray-400">
-          <h3 className="font-medium mb-2">About document upload:</h3>
+        {/* Informative guidelines footer */}
+        <div className="pt-6 border-t border-slate-100 dark:border-slate-800/60 text-xs text-slate-500 dark:text-slate-400 space-y-2.5 font-medium leading-relaxed">
+          <h3 className="font-bold text-slate-800 dark:text-slate-300 uppercase tracking-wider text-[10px]">Pipeline processing info:</h3>
           <ul className="list-disc pl-5 space-y-1">
-            <li>Your document will be securely processed in the background</li>
-            <li>You can track the processing status on the Documents page</li>
-            <li>Once processing is complete, you can generate API keys for the document</li>
-            <li>All documents are processed using AI to extract structured data</li>
+            <li>Your documents are securely classified and parsed using AI.</li>
+            <li>Text extraction and entities are mapped against dynamic schemas in parallel.</li>
+            <li>Once parsed, access your data instantly using the sandbox or document-scoped API keys.</li>
           </ul>
         </div>
       </div>

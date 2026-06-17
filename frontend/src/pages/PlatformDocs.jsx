@@ -4,153 +4,165 @@ import { BookOpenIcon, InformationCircleIcon, ShieldCheckIcon, ScaleIcon, CodeBr
 const PlatformDocs = () => {
   const { theme } = useTheme();
 
-  const cardClasses = `p-6 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`;
-  const sectionTitleClasses = `text-xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`;
-  const sectionSubtitleClasses = `text-lg font-semibold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`;
-  const textClasses = theme === 'dark' ? 'text-gray-300' : 'text-gray-600';
-
   return (
-    <div className="p-6">
-      <h1 className={`text-2xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Platform Documentation</h1>
+    <div className="p-6 max-w-5xl mx-auto space-y-8">
+      {/* Page Title */}
+      <div>
+        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Platform Documentation</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">Learn how to authenticate and query DOnC-key APIs.</p>
+      </div>
 
       {/* Overview */}
-      <div className={cardClasses + ' mb-6'}>
-        <div className="flex items-center mb-4">
-          <BookOpenIcon className="h-6 w-6 text-blue-500 mr-2" />
-          <h2 className={sectionTitleClasses}>Platform Overview</h2>
+      <div className="card-premium-no-hover p-6 md:p-8 space-y-4">
+        <div className="flex items-center space-x-3 text-blue-600 dark:text-blue-400">
+          <BookOpenIcon className="h-6 w-6" />
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Platform Overview</h2>
         </div>
-
-        <p className={textClasses + ' mb-4'}>
+        <p className="text-sm text-slate-600 dark:text-slate-400 font-medium leading-relaxed">
           Welcome to the Document Intelligence Platform. This platform provides comprehensive document processing and API access capabilities.
         </p>
-
-        <div className="mb-4">
-          <h3 className={sectionSubtitleClasses}>Key Features</h3>
-          <ul className={`list-disc pl-5 space-y-2 ${textClasses}`}>
-            <li>Document upload and processing</li>
-            <li>Structured data extraction</li>
-            <li>Document-scoped API access</li>
-            <li>Comprehensive usage tracking</li>
-            <li>Secure authentication and authorization</li>
+        <div className="pt-2">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 mb-2">Key Features</h3>
+          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-slate-600 dark:text-slate-400 font-medium">
+            <li className="flex items-center space-x-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0"></span>
+              <span>Document upload and processing</span>
+            </li>
+            <li className="flex items-center space-x-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0"></span>
+              <span>Structured data extraction</span>
+            </li>
+            <li className="flex items-center space-x-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0"></span>
+              <span>Document-scoped API access</span>
+            </li>
+            <li className="flex items-center space-x-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0"></span>
+              <span>Comprehensive usage tracking</span>
+            </li>
+            <li className="flex items-center space-x-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0"></span>
+              <span>Secure authentication</span>
+            </li>
           </ul>
         </div>
       </div>
 
       {/* Authentication */}
-      <div className={cardClasses + ' mb-6'}>
-        <div className="flex items-center mb-4">
-          <ShieldCheckIcon className="h-6 w-6 text-blue-500 mr-2" />
-          <h2 className={sectionTitleClasses}>Authentication</h2>
+      <div className="card-premium-no-hover p-6 md:p-8 space-y-6">
+        <div className="flex items-center space-x-3 text-blue-600 dark:text-blue-400">
+          <ShieldCheckIcon className="h-6 w-6" />
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Authentication</h2>
         </div>
 
-        <div className="mb-4">
-          <h3 className={sectionSubtitleClasses}>Platform Authentication</h3>
-          <p className={textClasses + ' mb-2'}>
-            The platform uses JWT-based authentication for user access. All API requests must include an Authorization header:
-          </p>
-          <div className={`p-3 rounded-md break-all ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'}`}>
-            Authorization: Bearer {'your_user_token'}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-3">
+            <h3 className="text-md font-bold text-slate-900 dark:text-white">Platform API Authentication</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+              The platform dashboard uses JWT-based authentication for user access. Include user token in authorization header:
+            </p>
+            <div className="p-4 bg-slate-900 dark:bg-slate-950 rounded-xl border border-slate-800 text-xs font-mono text-blue-400 break-all leading-normal">
+              Authorization: Bearer {'your_user_token'}
+            </div>
           </div>
-        </div>
 
-        <div className="mb-4">
-          <h3 className={sectionSubtitleClasses}>Document API Authentication</h3>
-          <p className={textClasses + ' mb-2'}>
-            Each document has its own API key for document-specific operations:
-          </p>
-          <div className={`p-3 rounded-md break-all ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'}`}>
-            X-Document-API-Key: {'your_document_api_key'}
+          <div className="space-y-3">
+            <h3 className="text-md font-bold text-slate-900 dark:text-white">Document API Authentication</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+              Each document exposes its own API endpoints secured by unique keys. Include the key header:
+            </p>
+            <div className="p-4 bg-slate-900 dark:bg-slate-950 rounded-xl border border-slate-800 text-xs font-mono text-blue-400 break-all leading-normal">
+              X-Document-API-Key: {'your_document_api_key'}
+            </div>
           </div>
         </div>
       </div>
 
       {/* Rate Limits */}
-      <div className={cardClasses + ' mb-6'}>
-        <div className="flex items-center mb-4">
-          <ScaleIcon className="h-6 w-6 text-blue-500 mr-2" />
-          <h2 className={sectionTitleClasses}>Rate Limits</h2>
+      <div className="card-premium-no-hover p-6 md:p-8 space-y-6">
+        <div className="flex items-center space-x-3 text-blue-600 dark:text-blue-400">
+          <ScaleIcon className="h-6 w-6" />
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Rate Limits</h2>
         </div>
 
-        <div className="mb-4">
-          <h3 className={sectionSubtitleClasses}>Platform API Rate Limits</h3>
-          <ul className={`list-disc pl-5 space-y-2 ${textClasses}`}>
-            <li>100 requests per minute per user</li>
-            <li>1000 requests per hour per user</li>
-            <li>10,000 requests per day per user</li>
-          </ul>
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+          <div className="space-y-3 p-5 rounded-2xl border border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-900/30">
+            <h3 className="font-bold text-slate-900 dark:text-white">Platform API Rate Limits</h3>
+            <ul className="space-y-2 text-slate-600 dark:text-slate-400 font-medium">
+              <li>100 requests per minute per user</li>
+              <li>1,000 requests per hour per user</li>
+              <li>10,000 requests per day per user</li>
+            </ul>
+          </div>
 
-        <div className="mb-4">
-          <h3 className={sectionSubtitleClasses}>Document API Rate Limits</h3>
-          <ul className={`list-disc pl-5 space-y-2 ${textClasses}`}>
-            <li>60 requests per minute per document</li>
-            <li>500 requests per hour per document</li>
-            <li>5,000 requests per day per document</li>
-          </ul>
+          <div className="space-y-3 p-5 rounded-2xl border border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-900/30">
+            <h3 className="font-bold text-slate-900 dark:text-white">Document API Rate Limits</h3>
+            <ul className="space-y-2 text-slate-600 dark:text-slate-400 font-medium">
+              <li>60 requests per minute per document</li>
+              <li>500 requests per hour per document</li>
+              <li>5,000 requests per day per document</li>
+            </ul>
+          </div>
         </div>
       </div>
 
       {/* API Differences */}
-      <div className={cardClasses + ' mb-6'}>
-        <div className="flex items-center mb-4">
-          <CodeBracketIcon className="h-6 w-6 text-blue-500 mr-2" />
-          <h2 className={sectionTitleClasses}>Platform API vs Document API</h2>
+      <div className="card-premium-no-hover p-6 md:p-8 space-y-6">
+        <div className="flex items-center space-x-3 text-blue-600 dark:text-blue-400">
+          <CodeBracketIcon className="h-6 w-6" />
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Platform API vs Document API</h2>
         </div>
 
-        <div className="mb-4">
-          <h3 className={sectionSubtitleClasses}>Platform API</h3>
-          <ul className={`list-disc pl-5 space-y-2 ${textClasses}`}>
-            <li>User-level operations</li>
-            <li>Document management</li>
-            <li>Account management</li>
-            <li>Usage tracking</li>
-            <li>Base URL: /api/v1/platform</li>
-          </ul>
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+          <div className="space-y-3">
+            <h3 className="font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800/60 pb-2">Platform API</h3>
+            <ul className="space-y-2 text-slate-600 dark:text-slate-400 font-medium">
+              <li>User-level accounts & setups</li>
+              <li>Document management (create, delete, lists)</li>
+              <li>Account usage metrics & analytics</li>
+              <li className="font-mono text-xs text-blue-500 mt-2">Base URL: /api/v1/platform</li>
+            </ul>
+          </div>
 
-        <div className="mb-4">
-          <h3 className={sectionSubtitleClasses}>Document API</h3>
-          <ul className={`list-disc pl-5 space-y-2 ${textClasses}`}>
-            <li>Document-specific operations</li>
-            <li>Data extraction and querying</li>
-            <li>Document metadata access</li>
-            <li>Structured data retrieval</li>
-            <li>Base URL: /api/v1/documents/{'document_id'}</li>
-          </ul>
+          <div className="space-y-3">
+            <h3 className="font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800/60 pb-2">Document API</h3>
+            <ul className="space-y-2 text-slate-600 dark:text-slate-400 font-medium">
+              <li>Document-specific operations</li>
+              <li>Structured data payload query sandbox</li>
+              <li>Document content schema and keys</li>
+              <li className="font-mono text-xs text-blue-500 mt-2">Base URL: /api/v1/documents/:id</li>
+            </ul>
+          </div>
         </div>
       </div>
 
       {/* Usage Guidelines */}
-      <div className={cardClasses}>
-        <div className="flex items-center mb-4">
-          <InformationCircleIcon className="h-6 w-6 text-blue-500 mr-2" />
-          <h2 className={sectionTitleClasses}>Usage Guidelines</h2>
+      <div className="card-premium-no-hover p-6 md:p-8 space-y-6">
+        <div className="flex items-center space-x-3 text-blue-600 dark:text-blue-400">
+          <InformationCircleIcon className="h-6 w-6" />
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Usage Guidelines</h2>
         </div>
 
-        <div className="mb-4">
-          <h3 className={sectionSubtitleClasses}>Best Practices</h3>
-          <ul className={`list-disc pl-5 space-y-2 ${textClasses}`}>
-            <li>Cache API responses when possible</li>
-            <li>Use pagination for large datasets</li>
-            <li>Implement proper error handling</li>
-            <li>Respect rate limits to avoid throttling</li>
-            <li>Keep API keys secure and rotate them regularly</li>
-          </ul>
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+          <div className="space-y-3">
+            <h3 className="font-bold text-slate-900 dark:text-white">Best Practices</h3>
+            <ul className="space-y-2 text-slate-600 dark:text-slate-400 font-medium">
+              <li>Cache API responses locally when possible.</li>
+              <li>Use pagination for large document listings.</li>
+              <li>Implement proper fallback error handling.</li>
+              <li>Respect rate limits to avoid getting throttled.</li>
+            </ul>
+          </div>
 
-        <div className="mb-4">
-          <h3 className={sectionSubtitleClasses}>Error Handling</h3>
-          <p className={textClasses + ' mb-2'}>
-            The API uses standard HTTP status codes. Common error responses include:
-          </p>
-          <ul className={`list-disc pl-5 space-y-2 ${textClasses}`}>
-            <li>400 Bad Request - Invalid parameters</li>
-            <li>401 Unauthorized - Authentication failed</li>
-            <li>403 Forbidden - Insufficient permissions</li>
-            <li>404 Not Found - Resource not found</li>
-            <li>429 Too Many Requests - Rate limit exceeded</li>
-            <li>500 Internal Server Error - Server-side error</li>
-          </ul>
+          <div className="space-y-3">
+            <h3 className="font-bold text-slate-900 dark:text-white">API Response Codes</h3>
+            <ul className="space-y-2 text-slate-600 dark:text-slate-400 font-medium">
+              <li><strong className="text-slate-700 dark:text-slate-300 font-semibold">400</strong> - Bad request parameters</li>
+              <li><strong className="text-slate-700 dark:text-slate-300 font-semibold">401</strong> - Invalid credentials</li>
+              <li><strong className="text-slate-700 dark:text-slate-300 font-semibold">429</strong> - Rate limit exceeded</li>
+              <li><strong className="text-slate-700 dark:text-slate-300 font-semibold">500</strong> - Server processing error</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>

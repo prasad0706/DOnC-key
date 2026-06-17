@@ -4,11 +4,6 @@ import { TableCellsIcon, InformationCircleIcon } from '@heroicons/react/24/outli
 const StructureTab = ({ document }) => {
   const { theme } = useTheme();
 
-  const cardClasses = `p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`;
-  const sectionTitleClasses = `text-lg font-semibold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`;
-  const textClasses = theme === 'dark' ? 'text-gray-300' : 'text-gray-600';
-
-  // Real schema based on Gemini prompt
   const schema = {
     fields: [
       { name: 'summary', type: 'string', description: 'Comprehensive summary of the document', required: true },
@@ -19,71 +14,65 @@ const StructureTab = ({ document }) => {
     ]
   };
 
-  // Real output from document
   const realOutput = document?.processingResult || { message: "Document not yet processed or no data available." };
 
   return (
     <div className="space-y-6">
       {/* Schema Overview */}
-      <div className={cardClasses}>
-        <div className="flex items-center mb-4">
-          <TableCellsIcon className="h-6 w-6 text-blue-500 mr-2" />
-          <h2 className={sectionTitleClasses}>Document Schema</h2>
+      <div className="card-premium-no-hover p-6">
+        <div className="flex items-center space-x-3 text-blue-600 dark:text-blue-400 mb-4">
+          <TableCellsIcon className="h-6 w-6" />
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">Document Schema</h2>
         </div>
 
-        <p className={textClasses + ' mb-4'}>
-          This schema defines the structured data extracted from your document by the AI.
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 font-medium leading-relaxed">
+          This schema defines the structured data model extracted from your document.
         </p>
 
         {/* Fields Table */}
-        <div className="overflow-x-auto mb-6">
-          <h3 className={`font-semibold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Fields</h3>
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className={theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}>
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Name
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Type
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Description
-                </th>
-              </tr>
-            </thead>
-            <tbody className={theme === 'dark' ? 'bg-gray-800 divide-y divide-gray-700' : 'bg-white divide-y divide-gray-200'}>
-              {schema.fields.map((field) => (
-                <tr key={field.name}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">{field.name}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500 dark:text-gray-400">{field.type}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500 dark:text-gray-400">{field.description}</div>
-                  </td>
+        <div className="overflow-hidden border border-slate-100 dark:border-slate-800/40 rounded-xl">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-slate-100 dark:divide-slate-800/40">
+              <thead>
+                <tr>
+                  <th scope="col" className="table-header-premium">Field Name</th>
+                  <th scope="col" className="table-header-premium">Data Type</th>
+                  <th scope="col" className="table-header-premium">Description</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/40">
+                {schema.fields.map((field) => (
+                  <tr key={field.name} className="table-row-premium">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-900 dark:text-white">
+                      {field.name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-xs font-mono text-slate-500 dark:text-slate-400">
+                      {field.type}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                      {field.description}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
       {/* Actual Output */}
-      <div className={cardClasses}>
-        <div className="flex items-center mb-4">
-          <InformationCircleIcon className="h-6 w-6 text-blue-500 mr-2" />
-          <h2 className={sectionTitleClasses}>Extracted Data</h2>
+      <div className="card-premium-no-hover p-6">
+        <div className="flex items-center space-x-3 text-blue-600 dark:text-blue-400 mb-4">
+          <InformationCircleIcon className="h-6 w-6" />
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">Extracted Data</h2>
         </div>
 
-        <p className={textClasses + ' mb-4'}>
-          This is the actual structured data extracted from your document.
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 font-medium leading-relaxed">
+          The following JSON payload contains the actual attributes extracted by the document analyzer.
         </p>
 
-        <div className={`p-4 rounded-md ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} text-sm font-mono overflow-auto max-h-96`}>
-          <pre>{JSON.stringify(realOutput, null, 2)}</pre>
+        <div className="p-5 bg-slate-900 dark:bg-slate-950 rounded-xl border border-slate-800 text-xs font-mono text-blue-400 overflow-auto max-h-96">
+          <pre className="text-slate-300 leading-normal">{JSON.stringify(realOutput, null, 2)}</pre>
         </div>
       </div>
     </div>

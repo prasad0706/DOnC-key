@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext';
 import { DocumentTextIcon } from '@heroicons/react/24/outline';
 import OAuth from '../components/OAuth';
 
@@ -12,7 +11,6 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
-  const { theme } = useTheme();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -41,23 +39,29 @@ const Login = () => {
   };
 
   return (
-    <div className={`min-h-screen flex items-center justify-center p-4 ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'}`}>
-      <div className={`w-full max-w-md p-8 rounded-lg shadow-md ${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}`}>
+    <div className="relative min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-[#090d16] text-slate-800 dark:text-slate-200 transition-colors duration-300 overflow-hidden">
+      {/* Background Spotlight Glows */}
+      <div className="glow-spotlight glow-blue w-[400px] h-[400px] top-[10%] left-[10%]" />
+      <div className="glow-spotlight glow-purple w-[450px] h-[450px] bottom-[10%] right-[10%]" />
+
+      <div className="card-premium-no-hover w-full max-w-md p-8 backdrop-blur-md bg-white/80 dark:bg-[#0f172a]/80">
         <div className="flex flex-col items-center mb-8">
-          <DocumentTextIcon className="h-12 w-12 text-blue-500 mb-4" />
-          <h1 className="text-2xl font-bold">Document Intelligence</h1>
-          <p className="text-gray-400 mt-2">Sign in to your account</p>
+          <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/25 mb-4">
+            <DocumentTextIcon className="h-6 w-6 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-950 dark:text-white">DOnC-key</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1.5 font-medium">Sign in to your account</p>
         </div>
 
         {error && (
-          <div className={`mb-4 p-3 rounded ${theme === 'dark' ? 'bg-red-900/20 text-red-400' : 'bg-red-100 text-red-700'}`}>
+          <div className="mb-5 p-3.5 rounded-xl text-sm border bg-rose-50 text-rose-700 border-rose-200/50 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1">
+            <label htmlFor="email" className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
               Email address
             </label>
             <input
@@ -68,13 +72,13 @@ const Login = () => {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`w-full px-3 py-2 rounded-md border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              className="input-premium"
               placeholder="you@example.com"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium mb-1">
+            <label htmlFor="password" className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
               Password
             </label>
             <input
@@ -85,26 +89,26 @@ const Login = () => {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={`w-full px-3 py-2 rounded-md border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              className="input-premium"
               placeholder="••••••••"
             />
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between text-sm">
             <div className="flex items-center">
               <input
                 id="remember-me"
                 name="remember-me"
                 type="checkbox"
-                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="h-4 w-4 rounded border-slate-300 dark:border-slate-800 text-blue-600 focus:ring-blue-500 bg-white dark:bg-slate-900"
               />
-              <label htmlFor="remember-me" className="ml-2 block text-sm">
+              <label htmlFor="remember-me" className="ml-2 block text-slate-600 dark:text-slate-400 font-medium">
                 Remember me
               </label>
             </div>
 
-            <div className="text-sm">
-              <Link to="/forgot-password" className="font-medium text-blue-500 hover:text-blue-400">
+            <div>
+              <Link to="/forgot-password" className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
                 Forgot password?
               </Link>
             </div>
@@ -113,20 +117,29 @@ const Login = () => {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+            className="w-full btn-primary py-3"
           >
             {loading ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
 
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-slate-100 dark:border-slate-800/80"></div>
+          </div>
+          <div className="relative flex justify-center text-xs font-bold uppercase tracking-wider">
+            <span className="bg-white dark:bg-[#0f172a] px-3 text-slate-400">Or continue with</span>
+          </div>
+        </div>
+
         <div className="mt-4">
           <OAuth />
         </div>
 
-        <div className="mt-6 text-center">
-          <p className="text-sm">
+        <div className="mt-8 text-center text-sm font-medium">
+          <p className="text-slate-500 dark:text-slate-400">
             Don't have an account?{' '}
-            <Link to="/signup" className="font-medium text-blue-500 hover:text-blue-400">
+            <Link to="/signup" className="font-bold text-blue-600 dark:text-blue-400 hover:underline">
               Sign up
             </Link>
           </p>

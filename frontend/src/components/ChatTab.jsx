@@ -50,11 +50,11 @@ const ChatTab = ({ documentId, documentStatus }) => {
 
   if (documentStatus !== 'ready') {
     return (
-      <div className={`p-8 rounded-lg text-center ${theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
-        <ChatBubbleLeftRightIcon className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-        <h3 className={`text-lg font-medium mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Chat Not Available</h3>
-        <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-          Document must be processed before you can chat with it.
+      <div className="card-premium-no-hover p-12 text-center flex flex-col items-center justify-center">
+        <ChatBubbleLeftRightIcon className="h-12 w-12 mx-auto mb-4 text-slate-400 dark:text-slate-500" />
+        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Chat Not Available</h3>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Document must be fully processed before you can chat with it.
         </p>
       </div>
     );
@@ -68,40 +68,42 @@ const ChatTab = ({ documentId, documentStatus }) => {
   ];
 
   return (
-    <div className={`rounded-lg overflow-hidden flex flex-col ${theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}
-      style={{ height: '600px' }}
-    >
+    <div className="card-premium-no-hover overflow-hidden flex flex-col backdrop-blur-md bg-white/50 dark:bg-[#0f172a]/30 h-[600px] border border-slate-100 dark:border-slate-800/40">
       {/* Header */}
-      <div className={`px-6 py-4 border-b flex items-center ${theme === 'dark' ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-gray-50'}`}>
-        <SparklesIcon className="h-5 w-5 text-purple-500 mr-2" />
-        <h3 className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-          Chat with Document
-        </h3>
-        <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${theme === 'dark' ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-100 text-purple-700'}`}>
-          AI-Powered
-        </span>
+      <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800/60 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/40">
+        <div className="flex items-center space-x-2">
+          <SparklesIcon className="h-5 w-5 text-purple-500 animate-pulse" />
+          <h3 className="font-bold text-slate-950 dark:text-white text-sm">
+            Chat with Document
+          </h3>
+          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400 border border-purple-200/50 dark:border-purple-500/20">
+            AI-Powered
+          </span>
+        </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {/* Messages Scroll Area */}
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <ChatBubbleLeftRightIcon className={`h-16 w-16 mb-4 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-300'}`} />
-            <h4 className={`text-lg font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              Ask anything about this document
-            </h4>
-            <p className={`text-sm mb-6 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
-              AI will answer based on the document content
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-lg">
+          <div className="flex flex-col items-center justify-center h-full text-center max-w-md mx-auto space-y-5">
+            <div className="p-4 bg-purple-50 dark:bg-purple-950/35 text-purple-600 dark:text-purple-400 rounded-2xl shadow-inner">
+              <ChatBubbleLeftRightIcon className="h-10 w-10" />
+            </div>
+            <div>
+              <h4 className="text-lg font-bold text-slate-900 dark:text-white">
+                Document Q&A Sandbox
+              </h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium leading-relaxed">
+                Ask questions about content layout, calculations, dates, or summaries. Our AI queries the extracted schema to respond.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full pt-4">
               {suggestedQuestions.map((q, i) => (
                 <button
                   key={i}
                   onClick={() => { setInput(q); inputRef.current?.focus(); }}
-                  className={`text-left text-sm px-3 py-2 rounded-lg border transition-colors ${theme === 'dark'
-                    ? 'border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
-                    : 'border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
+                  className="text-left text-xs font-semibold p-3 rounded-xl border border-slate-200 text-slate-600 hover:border-slate-400 hover:text-slate-900 bg-white dark:bg-slate-900 dark:border-slate-800 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:text-white transition-all cursor-pointer truncate"
                 >
                   {q}
                 </button>
@@ -109,52 +111,52 @@ const ChatTab = ({ documentId, documentStatus }) => {
             </div>
           </div>
         ) : (
-          <>
+          <div className="space-y-4">
             {messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`flex items-start max-w-[80%] ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                <div className={`flex items-start max-w-[80%] gap-3.5 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
                   <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${msg.role === 'user'
-                    ? 'bg-blue-600 ml-2'
-                    : `${theme === 'dark' ? 'bg-purple-500/20' : 'bg-purple-100'} mr-2`
+                    ? 'bg-blue-600 shadow-md shadow-blue-500/20 text-white'
+                    : 'bg-purple-50 dark:bg-purple-950/45 text-purple-600 dark:text-purple-400 border border-purple-200/50 dark:border-purple-500/20'
                   }`}>
                     {msg.role === 'user'
-                      ? <UserIcon className="h-4 w-4 text-white" />
-                      : <SparklesIcon className={`h-4 w-4 ${theme === 'dark' ? 'text-purple-400' : 'text-purple-600'}`} />
+                      ? <UserIcon className="h-4.5 w-4.5" />
+                      : <SparklesIcon className="h-4.5 w-4.5" />
                     }
                   </div>
-                  <div className={`px-4 py-3 rounded-2xl ${msg.role === 'user'
-                    ? 'bg-blue-600 text-white rounded-br-md'
-                    : `${theme === 'dark' ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-800'} rounded-bl-md`
+                  <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${msg.role === 'user'
+                    ? 'bg-blue-600 text-white rounded-tr-sm shadow-md shadow-blue-500/10 font-medium'
+                    : 'bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 rounded-tl-sm border border-slate-200/40 dark:border-slate-800/40 font-medium'
                   }`}>
-                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                    <p className="whitespace-pre-wrap">{msg.content}</p>
                   </div>
                 </div>
               </div>
             ))}
             {isLoading && (
               <div className="flex justify-start">
-                <div className="flex items-start">
-                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mr-2 ${theme === 'dark' ? 'bg-purple-500/20' : 'bg-purple-100'}`}>
-                    <SparklesIcon className={`h-4 w-4 ${theme === 'dark' ? 'text-purple-400' : 'text-purple-600'}`} />
+                <div className="flex items-start gap-3.5">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-purple-50 dark:bg-purple-950/45 text-purple-600 dark:text-purple-400 border border-purple-200/50 dark:border-purple-500/20">
+                    <SparklesIcon className="h-4.5 w-4.5 animate-spin" />
                   </div>
-                  <div className={`px-4 py-3 rounded-2xl rounded-bl-md ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'}`}>
-                    <div className="flex space-x-1.5">
-                      <div className={`w-2 h-2 rounded-full animate-bounce ${theme === 'dark' ? 'bg-gray-400' : 'bg-gray-500'}`} style={{ animationDelay: '0ms' }}></div>
-                      <div className={`w-2 h-2 rounded-full animate-bounce ${theme === 'dark' ? 'bg-gray-400' : 'bg-gray-500'}`} style={{ animationDelay: '150ms' }}></div>
-                      <div className={`w-2 h-2 rounded-full animate-bounce ${theme === 'dark' ? 'bg-gray-400' : 'bg-gray-500'}`} style={{ animationDelay: '300ms' }}></div>
+                  <div className="px-5 py-3.5 rounded-2xl rounded-tl-sm bg-slate-100 dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800/40">
+                    <div className="flex space-x-1.5 items-center">
+                      <div className="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-600 animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                      <div className="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-600 animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                      <div className="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-600 animate-bounce" style={{ animationDelay: '300ms' }}></div>
                     </div>
                   </div>
                 </div>
               </div>
             )}
             <div ref={messagesEndRef} />
-          </>
+          </div>
         )}
       </div>
 
-      {/* Input */}
-      <div className={`p-4 border-t ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-        <div className="flex items-center space-x-2">
+      {/* Input Form Footer */}
+      <div className="p-4 border-t border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-900/40">
+        <div className="flex items-center gap-2">
           <input
             ref={inputRef}
             type="text"
@@ -163,17 +165,14 @@ const ChatTab = ({ documentId, documentStatus }) => {
             onKeyDown={handleKeyDown}
             placeholder="Ask a question about this document..."
             disabled={isLoading}
-            className={`flex-1 px-4 py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'dark'
-              ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-              : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
-            } ${isLoading ? 'opacity-50' : ''}`}
+            className="flex-1 input-premium pr-4 focus:ring-4 focus:ring-blue-500/10"
           />
           <button
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
-            className={`p-3 rounded-xl transition-colors ${input.trim() && !isLoading
-              ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-500/30'
-              : `${theme === 'dark' ? 'bg-gray-700 text-gray-500' : 'bg-gray-100 text-gray-400'} cursor-not-allowed`
+            className={`p-3 rounded-xl transition-colors cursor-pointer ${input.trim() && !isLoading
+              ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/20'
+              : 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-600 cursor-not-allowed border dark:border-slate-700'
             }`}
           >
             <PaperAirplaneIcon className="h-5 w-5" />

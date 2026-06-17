@@ -4,91 +4,102 @@ import { DocumentTextIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 
 const Landing = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div className="relative min-h-screen overflow-hidden bg-slate-50 dark:bg-[#090d16] text-slate-800 dark:text-slate-200 transition-colors duration-300">
+      {/* Background Spotlight Glows */}
+      <div className="glow-spotlight glow-blue w-[500px] h-[500px] top-[-10%] left-[-10%]" />
+      <div className="glow-spotlight glow-purple w-[600px] h-[600px] bottom-[-20%] right-[-10%]" />
+
       {/* Header */}
-      <header className="absolute top-0 left-0 right-0 px-6 py-8 z-10">
+      <header className="absolute top-0 left-0 right-0 px-6 py-6 z-10">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
               <DocumentTextIcon className="h-6 w-6 text-white" />
             </div>
+            <span className="font-extrabold text-xl tracking-tight text-slate-900 dark:text-white">DOnC-key</span>
           </div>
-          <nav className="hidden md:flex space-x-8">
-            <a href="#features" className="text-gray-600 hover:text-blue-600 transition-colors">Features</a>
-            <a href="#how-it-works" className="text-gray-600 hover:text-blue-600 transition-colors">How It Works</a>
-            <a href="#pricing" className="text-gray-600 hover:text-blue-600 transition-colors">Pricing</a>
+          <nav className="hidden md:flex space-x-8 text-sm font-semibold">
+            <a href="#features" className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Features</a>
+            <a href="#how-it-works" className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Documentation</a>
           </nav>
-          <Link to="/login" className="text-gray-600 hover:text-blue-600 transition-colors font-medium">
+          <Link to="/login" className="btn-secondary py-2 px-5">
             Sign In
           </Link>
         </div>
       </header>
 
       {/* Hero Section */}
-      <main className="relative pt-24 pb-20 px-6">
-        <div className="max-w-7xl mx-auto">
+      <main className="relative pt-32 pb-20 px-6 flex flex-col items-center justify-center min-h-screen">
+        <div className="max-w-7xl mx-auto w-full">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h1 className="text-5xl md:text-6xl font-extrabold mb-6 leading-tight">
-              Transform Documents into <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">Actionable Insights</span>
+            <h1 className="text-5xl md:text-6xl font-extrabold mb-6 leading-tight tracking-tight text-slate-950 dark:text-white">
+              Transform Documents into <br />
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-500 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400">
+                Actionable Data APIs
+              </span>
             </h1>
-            <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
-              Our AI-powered document intelligence platform extracts, analyzes, and transforms complex documents into structured data with unprecedented accuracy and speed.
+            <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto font-medium leading-relaxed">
+              DOnC-key is the document intelligence platform built for developers. Extract structured JSON, query docs via AI, and query via document-scoped APIs.
             </p>
 
-            {/* Unique Get Started Button */}
-            <div className="relative inline-block group">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 to="/login"
-                className="relative inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-full overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
+                className="btn-primary px-8 py-3.5 rounded-full flex items-center gap-2"
               >
-                <span className="relative z-10 flex items-center">
-                  <span className="mr-3">Begin Your Journey</span>
-                  <ArrowRightIcon className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 hover:animate-pulse"></div>
+                Get Started Free
+                <ArrowRightIcon className="h-4 w-4" />
               </Link>
-              <div className="absolute -inset-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full blur opacity-30 group-hover:opacity-60 transition-opacity duration-300 -z-10"></div>
+              <a
+                href="#features"
+                className="btn-secondary px-8 py-3.5 rounded-full"
+              >
+                Learn More
+              </a>
             </div>
           </div>
 
-          {/* Hero Image/Visualization */}
-          <div className="mt-20 relative">
-            <div className="bg-white rounded-2xl shadow-xl p-6 max-w-4xl mx-auto border border-gray-100">
+          {/* Interactive Feature Showcase */}
+          <div className="mt-12 relative max-w-4xl mx-auto">
+            <div className="card-premium-no-hover p-6 md:p-8 backdrop-blur-md bg-white/70 dark:bg-[#0f172a]/70">
               <div className="flex flex-col md:flex-row gap-8 items-center">
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-800 mb-4">Real-time Document Processing</h3>
-                  <ul className="space-y-3">
-                    <li className="flex items-center">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                      <span className="text-gray-600">Extract text from complex layouts</span>
-                    </li>
-                    <li className="flex items-center">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                      <span className="text-gray-600">Identify key entities and relationships</span>
-                    </li>
-                    <li className="flex items-center">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                      <span className="text-gray-600">Convert to structured JSON data</span>
-                    </li>
-                  </ul>
+                <div className="flex-1 space-y-4">
+                  <span className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-3 py-1 rounded-full">
+                    Developer First
+                  </span>
+                  <h3 className="text-2xl font-bold text-slate-900 dark:text-white">API-Ready Extraction</h3>
+                  <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                    Upload documents or send them directly to our APIs. We use Gemini model intelligence to process text, layouts, images, and tables into structured JSON schemas automatically.
+                  </p>
+                  <div className="flex items-center space-x-2 text-xs font-mono text-slate-500 dark:text-slate-400">
+                    <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded">GET</span>
+                    <span>/api/v1/documents/:id/data</span>
+                  </div>
                 </div>
-                <div className="flex-1 flex justify-center">
-                  <div className="relative">
-                    <div className="w-48 h-64 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg p-4 shadow-inner">
-                      <div className="space-y-2">
-                        <div className="h-3 bg-blue-300 rounded w-4/5"></div>
-                        <div className="h-3 bg-blue-200 rounded w-3/4"></div>
-                        <div className="h-3 bg-blue-300 rounded w-5/6"></div>
-                        <div className="h-3 bg-blue-200 rounded w-2/3"></div>
-                        <div className="h-3 bg-blue-300 rounded w-4/5"></div>
-                        <div className="h-3 bg-blue-200 rounded w-3/4"></div>
-                        <div className="h-3 bg-blue-300 rounded w-5/6"></div>
+                <div className="flex-1 w-full flex justify-center">
+                  <div className="relative w-full max-w-xs p-5 bg-slate-900 dark:bg-[#090d16] rounded-2xl border border-slate-800 shadow-2xl font-mono text-xs text-blue-400 overflow-hidden">
+                    <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
+                      <div className="flex space-x-1.5">
+                        <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
+                        <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                        <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
                       </div>
+                      <span className="text-[10px] text-slate-500">gemini-structured-output</span>
                     </div>
-                    <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-r from-green-400 to-teal-400 rounded-full flex items-center justify-center animate-pulse">
-                      <ArrowRightIcon className="h-6 w-6 text-white" />
-                    </div>
+                    <pre className="text-slate-300 overflow-x-auto whitespace-pre">
+{`{
+  "document": "Q4_Report.pdf",
+  "data": {
+    "summary": "Revenue grew by 14%...",
+    "sentiment": "Positive",
+    "entities": ["DOnC-key Corp"],
+    "keyPoints": [
+      "Record quarterly earnings",
+      "API usage hit 10M requests"
+    ]
+  }
+}`}
+                    </pre>
                   </div>
                 </div>
               </div>
@@ -98,76 +109,70 @@ const Landing = () => {
       </main>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-gray-50">
+      <section id="features" className="py-24 bg-slate-100/50 dark:bg-slate-950/20 border-t border-slate-100 dark:border-slate-800/40 relative">
         <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-4xl font-bold text-center mb-16">Powerful Document Intelligence Features</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            {[
-              {
-                title: "Smart Extraction",
-                description: "AI-powered text and data extraction from complex documents with layout preservation.",
-                icon: (
-                  <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
-                    <DocumentTextIcon className="h-6 w-6 text-blue-600" />
-                  </div>
-                )
-              },
-              {
-                title: "Real-time Processing",
-                description: "Process documents instantly with our optimized pipeline architecture.",
-                icon: (
-                  <div className="w-12 h-12 rounded-lg bg-indigo-100 flex items-center justify-center">
-                    <svg className="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  </div>
-                )
-              },
-              {
-                title: "Structured Output",
-                description: "Convert unstructured data into clean, structured JSON for easy integration.",
-                icon: (
-                  <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
-                    <svg className="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
-                    </svg>
-                  </div>
-                )
-              }
-            ].map((feature, index) => (
-              <div key={index} className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100">
-                <div className="mb-4">
-                  {feature.icon}
-                </div>
-                <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-950 dark:text-white mb-4">
+              Everything You Need For Document AI
+            </h2>
+            <p className="text-slate-600 dark:text-slate-400 font-medium">
+              We focus on speed, structure, and simplicity so you can integrate document insight features in minutes.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="card-premium p-8">
+              <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-6">
+                <DocumentTextIcon className="h-6 w-6" />
               </div>
-            ))}
+              <h3 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">Dynamic AI Sandbox</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                Test API requests directly from the browser inside our integrated sandbox playground. Inspect extraction payloads in real-time.
+              </p>
+            </div>
+
+            <div className="card-premium p-8">
+              <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-6">
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">Document-Scoped Keys</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                Generate highly granular API keys mapped directly to individual documents. Revoke them anytime to secure access profiles.
+              </p>
+            </div>
+
+            <div className="card-premium p-8">
+              <div className="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/40 flex items-center justify-center text-purple-600 dark:text-purple-400 mb-6">
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">Natural Chat Sandbox</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                Ask natural language questions about your invoices, reports, or research documents, and let our document chat assistant handle the rest.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20">
-        <div className="max-w-4xl mx-auto text-center px-6">
-          <h2 className="text-4xl font-bold mb-6">Ready to Transform Your Document Workflow?</h2>
-          <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
-            Join thousands of professionals who are already leveraging AI-powered document intelligence.
+      {/* CTA Footer */}
+      <section className="py-20 text-center relative">
+        <div className="glow-spotlight glow-purple w-[400px] h-[400px] top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2" />
+        <div className="max-w-4xl mx-auto px-6">
+          <h2 className="text-3xl md:text-4xl font-extrabold mb-6 text-slate-950 dark:text-white">Ready to Unlock Document Insights?</h2>
+          <p className="text-slate-600 dark:text-slate-400 mb-8 max-w-md mx-auto font-medium">
+            Sign in to start structuring documents and deploying them as custom API endpoints today.
           </p>
-          <div className="relative inline-block group">
-            <Link
-              to="/login"
-              className="relative inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-full overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
-            >
-              <span className="relative z-10 flex items-center">
-                <span className="mr-3">Get Started Now</span>
-                <ArrowRightIcon className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 hover:animate-pulse"></div>
-            </Link>
-            <div className="absolute -inset-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full blur opacity-30 group-hover:opacity-60 transition-opacity duration-300 -z-10"></div>
-          </div>
+          <Link
+            to="/login"
+            className="btn-primary px-8 py-3.5 rounded-full inline-flex items-center gap-2"
+          >
+            Create Your Account
+            <ArrowRightIcon className="h-4 w-4" />
+          </Link>
         </div>
       </section>
     </div>

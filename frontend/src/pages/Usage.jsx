@@ -33,7 +33,7 @@ const Usage = () => {
         setAnalytics(data);
         setLoading(false);
       } catch (err) {
-        // Fallback to mock data if API has no data yet
+        // Fallback to empty mock structured data
         setAnalytics({
           apiCallsOverTime: { labels: [], data: [] },
           requestsPerDocument: { labels: [], data: [] },
@@ -52,7 +52,7 @@ const Usage = () => {
   if (loading) {
     return (
       <div className="p-6">
-        <h1 className={`text-2xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Usage Analytics</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-6">Usage Analytics</h1>
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
@@ -63,15 +63,15 @@ const Usage = () => {
   if (error) {
     return (
       <div className="p-6">
-        <h1 className={`text-2xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Usage Analytics</h1>
-        <div className={`p-4 rounded-md ${theme === 'dark' ? 'bg-red-900/20 text-red-400' : 'bg-red-100 text-red-700'}`}>
+        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-6">Usage Analytics</h1>
+        <div className="p-4 rounded-xl border bg-rose-50 text-rose-700 border-rose-200/50 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20">
           {error}
         </div>
       </div>
     );
   }
 
-  // Chart options for dark/light theme
+  // Chart options dynamically mapped to theme tokens
   const getChartOptions = (title) => ({
     responsive: true,
     maintainAspectRatio: false,
@@ -79,33 +79,34 @@ const Usage = () => {
       legend: {
         position: 'top',
         labels: {
-          color: theme === 'dark' ? '#ffffff' : '#4b5563'
+          color: theme === 'dark' ? '#9ca3af' : '#475569',
+          font: { family: 'Plus Jakarta Sans', weight: '600', size: 11 }
         }
       },
       title: {
         display: true,
         text: title,
-        color: theme === 'dark' ? '#ffffff' : '#1f2937',
-        font: {
-          size: 16
-        }
+        color: theme === 'dark' ? '#f8fafc' : '#0f172a',
+        font: { family: 'Outfit', weight: '700', size: 15 }
       }
     },
     scales: {
       x: {
         ticks: {
-          color: theme === 'dark' ? '#9ca3af' : '#6b7280'
+          color: theme === 'dark' ? '#64748b' : '#64748b',
+          font: { family: 'Plus Jakarta Sans', size: 10 }
         },
         grid: {
-          color: theme === 'dark' ? '#374151' : '#e5e7eb'
+          color: theme === 'dark' ? 'rgba(51,65,85,0.2)' : 'rgba(241,245,249,0.7)'
         }
       },
       y: {
         ticks: {
-          color: theme === 'dark' ? '#9ca3af' : '#6b7280'
+          color: theme === 'dark' ? '#64748b' : '#64748b',
+          font: { family: 'Plus Jakarta Sans', size: 10 }
         },
         grid: {
-          color: theme === 'dark' ? '#374151' : '#e5e7eb'
+          color: theme === 'dark' ? 'rgba(51,65,85,0.2)' : 'rgba(241,245,249,0.7)'
         }
       }
     }
@@ -116,12 +117,13 @@ const Usage = () => {
     labels: analytics.apiCallsOverTime.labels,
     datasets: [
       {
-        label: 'API Calls',
+        label: 'API Requests',
         data: analytics.apiCallsOverTime.data,
         borderColor: '#3b82f6',
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-        tension: 0.4,
-        fill: true
+        backgroundColor: 'rgba(59, 130, 246, 0.05)',
+        tension: 0.35,
+        fill: true,
+        borderWidth: 2
       }
     ]
   };
@@ -133,9 +135,8 @@ const Usage = () => {
       {
         label: 'Requests',
         data: analytics.requestsPerDocument.data,
-        backgroundColor: '#3b82f6',
-        borderColor: '#3b82f6',
-        borderWidth: 1
+        backgroundColor: '#6366f1',
+        borderRadius: 6
       }
     ]
   };
@@ -146,102 +147,99 @@ const Usage = () => {
     datasets: [
       {
         data: [analytics.errorVsSuccess.success, analytics.errorVsSuccess.error],
-        backgroundColor: ['#10b981', '#ef4444'],
+        backgroundColor: ['#10b981', '#f43f5e'],
         borderWidth: 0
       }
     ]
   };
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Usage Analytics</h1>
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => setTimeRange('7d')}
-            className={`px-3 py-1 rounded-md text-sm ${timeRange === '7d' ? 'bg-blue-600 text-white' : theme === 'dark' ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`}
-          >
-            7D
-          </button>
-          <button
-            onClick={() => setTimeRange('30d')}
-            className={`px-3 py-1 rounded-md text-sm ${timeRange === '30d' ? 'bg-blue-600 text-white' : theme === 'dark' ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`}
-          >
-            30D
-          </button>
-          <button
-            onClick={() => setTimeRange('90d')}
-            className={`px-3 py-1 rounded-md text-sm ${timeRange === '90d' ? 'bg-blue-600 text-white' : theme === 'dark' ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`}
-          >
-            90D
-          </button>
+    <div className="p-6 max-w-7xl mx-auto space-y-8">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Usage Analytics</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">Monitor document API query metrics in real-time.</p>
+        </div>
+
+        {/* Time filters switch */}
+        <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200/40 dark:border-slate-800/60">
+          {['7d', '30d', '90d'].map((range) => (
+            <button
+              key={range}
+              onClick={() => setTimeRange(range)}
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                timeRange === range
+                  ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-white'
+                  : 'text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+              }`}
+            >
+              {range}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Total API Calls */}
-        <div className={`p-6 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Total API Calls</p>
-              <p className={`text-3xl font-bold mt-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                {analytics.totalApiCalls}
-              </p>
-            </div>
-            <ChartBarIcon className="h-8 w-8 text-blue-500" />
+        <div className="card-premium p-6 flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Total API Calls</p>
+            <p className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+              {analytics.totalApiCalls}
+            </p>
+          </div>
+          <div className="p-3.5 rounded-xl bg-blue-50 dark:bg-blue-950/45 text-blue-600 dark:text-blue-400">
+            <ChartBarIcon className="h-6 w-6" />
           </div>
         </div>
 
         {/* Success Rate */}
-        <div className={`p-6 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Success Rate</p>
-              <p className={`text-3xl font-bold mt-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                {analytics.successRate}%
-              </p>
-            </div>
-            <div className="flex items-center">
-              <ArrowTrendingUpIcon className="h-8 w-8 text-green-500" />
-            </div>
+        <div className="card-premium p-6 flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Success Rate</p>
+            <p className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+              {analytics.successRate}%
+            </p>
+          </div>
+          <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/45 text-emerald-600 dark:text-emerald-400">
+            <ArrowTrendingUpIcon className="h-6 w-6" />
           </div>
         </div>
 
         {/* Average Latency */}
-        <div className={`p-6 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Avg Latency</p>
-              <p className={`text-3xl font-bold mt-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                {analytics.averageLatency}ms
-              </p>
-            </div>
-            <ClockIcon className="h-8 w-8 text-yellow-500" />
+        <div className="card-premium p-6 flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Avg Latency</p>
+            <p className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+              {analytics.averageLatency}ms
+            </p>
+          </div>
+          <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/45 text-amber-600 dark:text-amber-400">
+            <ClockIcon className="h-6 w-6" />
           </div>
         </div>
 
         {/* Error Rate */}
-        <div className={`p-6 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Error Rate</p>
-              <p className={`text-3xl font-bold mt-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                {100 - analytics.successRate}%
-              </p>
-            </div>
-            <div className="flex items-center">
-              <ArrowTrendingDownIcon className="h-8 w-8 text-red-500" />
-            </div>
+        <div className="card-premium p-6 flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Error Rate</p>
+            <p className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+              {Math.max(0, 100 - analytics.successRate)}%
+            </p>
+          </div>
+          <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/45 text-rose-600 dark:text-rose-400">
+            <ArrowTrendingDownIcon className="h-6 w-6" />
           </div>
         </div>
       </div>
 
       {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* API Calls Over Time */}
-        <div className={`p-6 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
-          <div className="h-80">
+        <div className="card-premium-no-hover p-6">
+          <div className="h-80 relative">
             <Line
               data={apiCallsChartData}
               options={getChartOptions('API Calls Over Time')}
@@ -250,8 +248,8 @@ const Usage = () => {
         </div>
 
         {/* Requests Per Document */}
-        <div className={`p-6 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
-          <div className="h-80">
+        <div className="card-premium-no-hover p-6">
+          <div className="h-80 relative">
             <Bar
               data={requestsPerDocChartData}
               options={getChartOptions('Requests Per Document')}
@@ -260,11 +258,24 @@ const Usage = () => {
         </div>
 
         {/* Error vs Success */}
-        <div className={`p-6 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
-          <div className="h-80">
+        <div className="card-premium-no-hover p-6 lg:col-span-2">
+          <div className="h-80 relative max-w-md mx-auto">
             <Doughnut
               data={errorSuccessChartData}
-              options={getChartOptions('Error vs Success Rate')}
+              options={{
+                ...getChartOptions('Error vs Success Rate'),
+                maintainAspectRatio: false,
+                plugins: {
+                  ...getChartOptions('Error vs Success Rate').plugins,
+                  legend: {
+                    position: 'bottom',
+                    labels: {
+                      color: theme === 'dark' ? '#9ca3af' : '#475569',
+                      font: { family: 'Plus Jakarta Sans', weight: '600' }
+                    }
+                  }
+                }
+              }}
             />
           </div>
         </div>
