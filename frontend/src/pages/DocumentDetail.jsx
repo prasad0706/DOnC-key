@@ -1,12 +1,27 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
-import { DocumentTextIcon, ClockIcon, CheckCircleIcon, XCircleIcon, KeyIcon, ArrowLeftIcon, TableCellsIcon, ChatBubbleLeftRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { 
+  DocumentTextIcon, 
+  ClockIcon, 
+  CheckCircleIcon, 
+  XCircleIcon, 
+  KeyIcon, 
+  ArrowLeftIcon, 
+  TableCellsIcon, 
+  ChatBubbleLeftRightIcon, 
+  XMarkIcon,
+  LinkIcon,
+  QueueListIcon
+} from '@heroicons/react/24/outline';
 import { getDocumentDetail, generateApiKey, getApiKeys, revokeApiKey } from '../utils/api';
 import StructureTab from '../components/StructureTab';
 import ApiDocsTab from '../components/ApiDocsTab';
 import TryApiTab from '../components/TryApiTab';
 import ChatTab from '../components/ChatTab';
+import WebhookSettingsTab from '../components/WebhookSettingsTab';
+import ApiLogsTab from '../components/ApiLogsTab';
 
 const DocumentDetail = () => {
   const { id } = useParams();
@@ -209,6 +224,8 @@ const DocumentDetail = () => {
             { id: 'structure', name: 'Structure', icon: TableCellsIcon },
             { id: 'api-integration', name: 'API Integration', icon: KeyIcon },
             { id: 'chat', name: 'AI Chat', icon: ChatBubbleLeftRightIcon },
+            { id: 'webhooks', name: 'Webhooks Settings', icon: LinkIcon },
+            { id: 'logs', name: 'Request Logs', icon: QueueListIcon },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -376,6 +393,14 @@ const DocumentDetail = () => {
 
         {activeTab === 'chat' && (
           <ChatTab documentId={document.id || document._id} documentStatus={document.status} />
+        )}
+
+        {activeTab === 'webhooks' && (
+          <WebhookSettingsTab projectId={document.projectId} />
+        )}
+
+        {activeTab === 'logs' && (
+          <ApiLogsTab documentId={document.id || document._id} />
         )}
       </div>
 

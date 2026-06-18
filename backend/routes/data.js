@@ -4,6 +4,8 @@ const bcrypt = require('bcryptjs');
 const ApiKey = require('../models/ApiKey');
 const DocumentData = require('../models/DocumentData');
 const ApiUsage = require('../models/ApiUsage');
+const ApiLog = require('../models/ApiLog');
+const Document = require('../models/Document');
 const logger = require('../utils/logger');
 const { dataApiLimiter } = require('../middleware/rateLimiter');
 
@@ -14,6 +16,26 @@ const { dataApiLimiter } = require('../middleware/rateLimiter');
 async function verifyApiKey(req, res, next) {
   const startTime = Date.now();
   const apiKey = req.headers['x-api-key'];
+
+  res.on('finish', async () => {
+    const latency = Date.now() - startTime;
+    if (req.documentId) {
+      try {
+        const doc = await Document.findById(req.documentId).select('userId');
+        await ApiLog.create({
+          documentId: req.documentId,
+          endpoint: req.originalUrl,
+          method: req.method,
+          statusCode: res.statusCode,
+          latencyMs: latency,
+          ipAddress: req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+          userId: doc ? doc.userId : null
+        });
+      } catch (err) {
+        logger.error('Failed to log API request in ApiLog', { error: err.message });
+      }
+    }
+  });
 
   if (!apiKey) {
     await ApiUsage.create({

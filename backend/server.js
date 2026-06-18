@@ -43,6 +43,10 @@ app.get('/api/status', (req, res) => {
   res.json({ status: 'OK', message: 'Document Intelligence API is running' });
 });
 
+// Serve local uploads directory
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, 'temp')));
+
 // Mount route modules
 app.use('/api/documents', require('./routes/documents'));
 app.use('/api/projects', require('./routes/projects'));
@@ -51,6 +55,8 @@ app.use('/api/documents', require('./routes/chat'));
 app.use('/api/v1', require('./routes/data'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/usage', require('./routes/usage'));
+app.use('/api/webhooks', require('./routes/webhooks'));
+app.use('/api/logs', require('./routes/logs'));
 
 // ─── Error Handling ─────────────────────────────────────────
 
