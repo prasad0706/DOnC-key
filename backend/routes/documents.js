@@ -37,14 +37,15 @@ const upload = multer({
   }
 });
 
-// POST /api/documents/upload — Upload a document (secured)
-router.post('/upload', verifyToken, uploadLimiter, upload.single('document'), async (req, res, next) => {
+// POST /api/documents/upload — Upload document(s) (secured)
+router.post('/upload', verifyToken, uploadLimiter, upload.array('document', 10), async (req, res, next) => {
   try {
-    if (!req.file) {
+    const files = req.files || (req.file ? [req.file] : []);
+    if (files.length === 0) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    const { projectId } = req.body;
+    const { projectId, modelSelected, customSchema } = req.body;
 
     if (!projectId) {
       return res.status(400).json({ error: 'Project ID is required. Please select or create a project.' });
@@ -56,62 +57,131 @@ router.post('/upload', verifyToken, uploadLimiter, upload.single('document'), as
       throw new NotFoundError('Project');
     }
 
-    const documentId = generateDocumentId();
+    const fs = require('fs').promises;
+    const path = require('path');
+    const results = [];
 
-    // Upload to Firebase Storage
-    const fileName = `${documentId}_${req.file.originalname}`;
-    const cleanFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '');
-    const file = bucket.file(cleanFileName);
+    for (const file of files) {
+      const documentId = generateDocumentId();
+      let fileUrl = '';
+      let storagePath = '';
+      let storageProvider = 'firebase';
+      let localFilePath = '';
 
-    await file.save(req.file.buffer, {
-      metadata: {
-        contentType: req.file.mimetype,
-        metadata: {
-          originalName: req.file.originalname,
-          documentId: documentId,
-          projectId: projectId,
-          userId: req.user.uid
+      // Check if STORAGE_PROVIDER is explicitly set to local, or fallback
+      const useLocalOnly = process.env.STORAGE_PROVIDER === 'local';
+
+      if (!useLocalOnly) {
+        try {
+          // Attempt Firebase upload
+          const fileName = `${documentId}_${file.originalname}`;
+          const cleanFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '');
+          const firebaseFile = bucket.file(cleanFileName);
+
+          await firebaseFile.save(file.buffer, {
+            metadata: {
+              contentType: file.mimetype,
+              metadata: {
+                originalName: file.originalname,
+                documentId: documentId,
+                projectId: projectId,
+                userId: req.user.uid
+              }
+            }
+          });
+
+          const [signedUrl] = await firebaseFile.getSignedUrl({
+            action: 'read',
+            expires: '03-09-2491'
+          });
+
+          fileUrl = signedUrl;
+          storagePath = `gs://${bucket.name}/${cleanFileName}`;
+          storageProvider = 'firebase';
+        } catch (fbError) {
+          logger.warn('Firebase upload failed, falling back to local storage', { error: fbError.message });
+          storageProvider = 'local';
+        }
+      } else {
+        storageProvider = 'local';
+      }
+
+      if (storageProvider === 'local') {
+        // Handle local storage
+        const tempDir = path.join(__dirname, '../temp');
+        await fs.mkdir(tempDir, { recursive: true });
+
+        const fileName = `${documentId}_${file.originalname}`;
+        const cleanFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '');
+        localFilePath = path.join(tempDir, cleanFileName);
+
+        await fs.writeFile(localFilePath, file.buffer);
+
+        // Serve URL statically from express
+        const baseUrl = process.env.VITE_API_BASE_URL 
+          ? process.env.VITE_API_BASE_URL.replace('/api', '') 
+          : 'http://localhost:5000';
+        fileUrl = `${baseUrl}/uploads/${cleanFileName}`;
+        storagePath = localFilePath; // Save the absolute local file path
+      }
+
+      // Parse customSchema if it was passed
+      let parsedSchema = null;
+      if (customSchema) {
+        try {
+          parsedSchema = typeof customSchema === 'string' ? JSON.parse(customSchema) : customSchema;
+        } catch (e) {
+          logger.warn('Failed to parse custom schema', { error: e.message });
         }
       }
-    });
 
-    const [signedUrl] = await file.getSignedUrl({
-      action: 'read',
-      expires: '03-09-2491'
-    });
+      const document = new Document({
+        _id: documentId,
+        fileUrl: fileUrl,
+        fileName: file.originalname,
+        fileType: file.mimetype,
+        fileSize: file.size,
+        tempFilePath: storagePath,
+        storageProvider: storageProvider,
+        modelSelected: modelSelected || 'gemini-2.5-flash',
+        customSchema: parsedSchema,
+        status: 'queued',
+        projectId: projectId,
+        userId: req.user.uid
+      });
 
-    const document = new Document({
-      _id: documentId,
-      fileUrl: signedUrl,
-      fileName: req.file.originalname,
-      fileType: req.file.mimetype,
-      fileSize: req.file.size,
-      tempFilePath: `gs://${bucket.name}/${cleanFileName}`,
-      status: 'queued',
-      projectId: projectId,
-      userId: req.user.uid
-    });
+      await document.save();
 
-    await document.save();
+      // Push to queue for processing
+      await documentQueue.add('process-document', {
+        documentId,
+        fileUrl: fileUrl,
+        storagePath: storagePath,
+        fileName: file.originalname
+      });
 
-    // Push to queue for processing
-    await documentQueue.add('process-document', {
-      documentId,
-      fileUrl: signedUrl,
-      storagePath: cleanFileName,
-      fileName: req.file.originalname
-    });
+      logger.info('Document uploaded and queued', { documentId, projectId, userId: req.user.uid, storageProvider });
 
-    logger.info('Document uploaded and queued', { documentId, projectId, userId: req.user.uid });
+      results.push({
+        message: 'Document uploaded and queued for processing',
+        status: 'queued',
+        documentId: documentId,
+        documentName: file.originalname,
+        fileUrl: fileUrl,
+        projectId: projectId,
+        storageProvider
+      });
+    }
 
-    res.status(202).json({
-      message: 'Document uploaded and queued for processing',
-      status: 'queued',
-      documentId: documentId,
-      documentName: req.file.originalname,
-      fileUrl: signedUrl,
-      projectId: projectId
-    });
+    // Return array if multiple files, or just single object for backwards compatibility
+    if (files.length === 1) {
+      res.status(202).json(results[0]);
+    } else {
+      res.status(202).json({
+        message: `${results.length} documents uploaded and queued for processing`,
+        uploads: results
+      });
+    }
   } catch (error) {
     next(error);
   }
@@ -161,10 +231,10 @@ router.get('/', verifyToken, async (req, res, next) => {
   }
 });
 
-// GET /api/documents/search — Full-text search across processed documents
+// GET /api/documents/search — Full-text and semantic search across processed documents
 router.get('/search', verifyToken, async (req, res, next) => {
   try {
-    const { q } = req.query;
+    const { q, type = 'text' } = req.query;
     if (!q || !q.trim()) {
       return res.status(400).json({ error: 'Search query (q) is required' });
     }
@@ -173,26 +243,75 @@ router.get('/search', verifyToken, async (req, res, next) => {
     const userDocs = await Document.find({ userId: req.user.uid }).select('_id');
     const userDocIds = userDocs.map(d => d._id);
 
-    // Text search on processed data
-    const results = await DocumentData.find(
-      { documentId: { $in: userDocIds }, $text: { $search: q } },
-      { score: { $meta: 'textScore' } }
-    ).sort({ score: { $meta: 'textScore' } }).limit(20);
+    let results = [];
+    let searchMethod = 'text';
+
+    if (type === 'semantic') {
+      try {
+        const { generateEmbeddings } = require('../utils/gemini');
+        const queryVector = await generateEmbeddings(q);
+        
+        if (queryVector) {
+          results = await DocumentData.aggregate([
+            {
+              $vectorSearch: {
+                index: "vector_index",
+                path: "embeddings",
+                queryVector: queryVector,
+                numCandidates: 100,
+                limit: 20
+              }
+            },
+            {
+              $match: {
+                documentId: { $in: userDocIds }
+              }
+            },
+            {
+              $project: {
+                documentId: 1,
+                data: 1,
+                score: { $meta: "vectorSearchScore" }
+              }
+            }
+          ]);
+          searchMethod = 'semantic';
+        }
+      } catch (err) {
+        logger.warn('Atlas Vector Search failed, falling back to full-text search', { error: err.message });
+        results = await DocumentData.find(
+          { documentId: { $in: userDocIds }, $text: { $search: q } },
+          { score: { $meta: 'textScore' } }
+        ).sort({ score: { $meta: 'textScore' } }).limit(20);
+        searchMethod = 'text-fallback';
+      }
+    } else {
+      results = await DocumentData.find(
+        { documentId: { $in: userDocIds }, $text: { $search: q } },
+        { score: { $meta: 'textScore' } }
+      ).sort({ score: { $meta: 'textScore' } }).limit(20);
+    }
 
     // Enrich with document metadata
     const enriched = await Promise.all(results.map(async (r) => {
       const doc = await Document.findById(r.documentId);
+      const score = searchMethod === 'semantic' ? r.score : (r._doc ? r._doc.score : r.score);
       return {
         documentId: r.documentId,
         fileName: doc?.fileName || r.documentId,
         status: doc?.status,
-        score: r._doc.score,
+        score: score || 1.0,
         summary: r.data?.summary?.substring(0, 200) + '...',
         category: r.data?.category
       };
     }));
 
-    res.json({ query: q, results: enriched, total: enriched.length });
+    res.json({ 
+      query: q, 
+      searchMethod, 
+      results: enriched, 
+      total: enriched.length 
+    });
   } catch (error) {
     next(error);
   }

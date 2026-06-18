@@ -22,11 +22,21 @@ export const setupAuthInterceptor = (token) => {
 
 // Document API
 // Document API
-export const uploadDocument = async (file, projectId = null) => {
+export const uploadDocument = async (file, projectId = null, modelSelected = 'gemini-2.5-flash', customSchema = null) => {
   const formData = new FormData();
-  formData.append('document', file);
+  if (Array.isArray(file)) {
+    file.forEach(f => formData.append('document', f));
+  } else {
+    formData.append('document', file);
+  }
   if (projectId) {
     formData.append('projectId', projectId);
+  }
+  if (modelSelected) {
+    formData.append('modelSelected', modelSelected);
+  }
+  if (customSchema) {
+    formData.append('customSchema', typeof customSchema === 'string' ? customSchema : JSON.stringify(customSchema));
   }
 
   try {
@@ -193,9 +203,9 @@ export const chatWithDocument = async (documentId, question, chatHistory = []) =
 };
 
 // Document Search API
-export const searchDocuments = async (query) => {
+export const searchDocuments = async (query, type = 'text') => {
   try {
-    const response = await api.get(`/documents/search?q=${encodeURIComponent(query)}`);
+    const response = await api.get(`/documents/search?q=${encodeURIComponent(query)}&type=${type}`);
     return response.data;
   } catch (error) {
     console.error('Search error:', error);
@@ -234,6 +244,37 @@ export const getUsageAnalyticsWithRange = async (range = '30d') => {
     return response.data;
   } catch (error) {
     console.error('Usage analytics error:', error);
+    throw error;
+  }
+};
+
+// Webhooks API
+export const getWebhooks = async (projectId) => {
+  try {
+    const response = await api.get(`/webhooks?projectId=${projectId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Get webhooks error:', error);
+    throw error;
+  }
+};
+
+export const createWebhook = async (data) => {
+  try {
+    const response = await api.post('/webhooks', data);
+    return response.data;
+  } catch (error) {
+    console.error('Create webhook error:', error);
+    throw error;
+  }
+};
+
+export const deleteWebhook = async (id) => {
+  try {
+    const response = await api.delete(`/webhooks/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Delete webhook error:', error);
     throw error;
   }
 };

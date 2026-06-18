@@ -31,6 +31,19 @@ const documentSchema = new mongoose.Schema(
       type: String,
       required: false
     },
+    storageProvider: {
+      type: String,
+      enum: ['firebase', 'local'],
+      default: 'firebase'
+    },
+    modelSelected: {
+      type: String,
+      default: 'gemini-2.5-flash'
+    },
+    customSchema: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null
+    },
     error: {
       type: String,
       default: null
