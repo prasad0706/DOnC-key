@@ -12,6 +12,7 @@ const Documents = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [searchType, setSearchType] = useState('text'); // 'text' or 'semantic'
 
   useEffect(() => {
     const fetchDocuments = async () => {
@@ -124,36 +125,63 @@ const Documents = () => {
         </Link>
       </div>
 
-      {/* Search Bar */}
-      <div className="relative">
-        <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 dark:text-slate-500" />
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyDown={async (e) => {
-            if (e.key === 'Enter' && searchQuery.trim()) {
-              setIsSearching(true);
-              try {
-                const data = await searchDocuments(searchQuery);
-                setSearchResults(data);
-              } catch (err) {
-                console.error('Search error:', err);
+      {/* Search Bar & Mode Selector */}
+      <div className="space-y-3">
+        <div className="relative">
+          <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 dark:text-slate-500" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={async (e) => {
+              if (e.key === 'Enter' && searchQuery.trim()) {
+                setIsSearching(true);
+                try {
+                  const data = await searchDocuments(searchQuery, searchType);
+                  setSearchResults(data);
+                } catch (err) {
+                  console.error('Search error:', err);
+                }
+                setIsSearching(false);
               }
-              setIsSearching(false);
-            }
-          }}
-          placeholder="Search documents by content... (press Enter)"
-          className="input-premium pl-12 pr-12 py-3.5 focus:ring-4 focus:ring-blue-500/10"
-        />
-        {searchQuery && (
+            }}
+            placeholder="Search documents by content... (press Enter)"
+            className="input-premium pl-12 pr-12 py-3.5 focus:ring-4 focus:ring-blue-500/10"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => { setSearchQuery(''); setSearchResults(null); }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-200"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+
+        {/* Search Type Button Group */}
+        <div className="flex items-center space-x-2">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mr-2">Search Mode:</span>
           <button
-            onClick={() => { setSearchQuery(''); setSearchResults(null); }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-200"
+            onClick={() => setSearchType('text')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+              searchType === 'text'
+                ? 'bg-blue-600 border-blue-600 text-white shadow shadow-blue-500/20'
+                : 'bg-white border-slate-200 text-slate-600 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-400'
+            }`}
           >
-            Clear
+            Full-Text Keywords
           </button>
-        )}
+          <button
+            onClick={() => setSearchType('semantic')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+              searchType === 'semantic'
+                ? 'bg-blue-600 border-blue-600 text-white shadow shadow-blue-500/20'
+                : 'bg-white border-slate-200 text-slate-600 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-400'
+            }`}
+          >
+            Semantic AI Vector
+          </button>
+        </div>
       </div>
 
       {isSearching && (
@@ -162,9 +190,14 @@ const Documents = () => {
 
       {searchResults && (
         <div className="space-y-3">
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-            Found {searchResults.total} result{searchResults.total !== 1 ? 's' : ''} for "{searchResults.query}"
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              Found {searchResults.total} result{searchResults.total !== 1 ? 's' : ''} for "{searchResults.query}"
+            </p>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400 border border-blue-100 dark:border-blue-900/35 uppercase">
+              {searchResults.searchMethod === 'semantic' ? 'Semantic AI Match' : 'Full-Text Match'}
+            </span>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {searchResults.results.map((r) => (
               <Link key={r.documentId} to={`/documents/${r.documentId}`}

@@ -66,14 +66,71 @@ const imageAnalysisSchema = {
 };
 
 /**
+ * Helper to convert user custom schema specification into Gemini responseSchema format.
+ */
+function convertToGeminiSchema(customSchema) {
+  if (!customSchema) return null;
+  // If it's already a SchemaType object with fields
+  if (customSchema.type && customSchema.properties) return customSchema;
+
+  const fields = Array.isArray(customSchema) ? customSchema : (customSchema.fields || []);
+  if (fields.length === 0) return null;
+
+  const properties = {};
+  const required = [];
+
+  fields.forEach(field => {
+    if (!field.name) return;
+
+    let type;
+    switch (field.type) {
+      case 'number':
+        type = SchemaType.NUMBER;
+        break;
+      case 'boolean':
+        type = SchemaType.BOOLEAN;
+        break;
+      case 'array':
+        type = SchemaType.ARRAY;
+        break;
+      case 'object':
+        type = SchemaType.OBJECT;
+        break;
+      default:
+        type = SchemaType.STRING;
+    }
+
+    properties[field.name] = {
+      type: type,
+      description: field.description || `Extracted ${field.name}`
+    };
+
+    if (field.type === 'array') {
+      properties[field.name].items = { type: SchemaType.STRING };
+    }
+
+    if (field.required !== false) {
+      required.push(field.name);
+    }
+  });
+
+  return {
+    type: SchemaType.OBJECT,
+    properties,
+    required
+  };
+}
+
+/**
  * Generate a structured summary from document text using Gemini.
  */
-async function generateDocumentSummary(text) {
+async function generateDocumentSummary(text, customSchema = null, modelName = 'gemini-2.5-flash') {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = genAI.getGenerativeModel({ model: modelName });
+    const activeSchema = convertToGeminiSchema(customSchema) || documentAnalysisSchema;
 
     const prompt = `
-      You are an expert document analyst. Analyze the following document text and provide a structured JSON response.
+      You are an expert document analyst. Analyze the following document text and provide a structured JSON response matching the requested schema.
 
       Document Text:
       "${text.substring(0, 30000)}"
@@ -83,24 +140,25 @@ async function generateDocumentSummary(text) {
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: {
         responseMimeType: 'application/json',
-        responseSchema: documentAnalysisSchema
+        responseSchema: activeSchema
       }
     });
 
     const response = await result.response;
     return JSON.parse(response.text());
   } catch (error) {
-    logger.error('Error generating summary with Gemini', { error: error.message });
-    throw new Error('Failed to generate document summary');
+    logger.error('Error generating summary with Gemini', { error: error.message, model: modelName });
+    throw new Error('Failed to generate document summary: ' + error.message);
   }
 }
 
 /**
  * Analyze an image using Gemini Vision API.
  */
-async function analyzeImage(imageBuffer, mimeType) {
+async function analyzeImage(imageBuffer, mimeType, customSchema = null, modelName = 'gemini-2.5-flash') {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = genAI.getGenerativeModel({ model: modelName });
+    const activeSchema = convertToGeminiSchema(customSchema) || imageAnalysisSchema;
 
     const imagePart = {
       inlineData: {
@@ -109,21 +167,21 @@ async function analyzeImage(imageBuffer, mimeType) {
       }
     };
 
-    const prompt = `You are an expert document analyst. Analyze this image thoroughly. Extract ALL text visible in the image (OCR). Then analyze the content.`;
+    const prompt = `You are an expert document analyst. Analyze this image thoroughly and provide a structured JSON response matching the requested schema. Extract ALL text visible in the image (OCR) if matching fields require it.`;
 
     const result = await model.generateContent({
       contents: [{ role: 'user', parts: [{ text: prompt }, imagePart] }],
       generationConfig: {
         responseMimeType: 'application/json',
-        responseSchema: imageAnalysisSchema
+        responseSchema: activeSchema
       }
     });
 
     const response = await result.response;
     return JSON.parse(response.text());
   } catch (error) {
-    logger.error('Error analyzing image with Gemini Vision', { error: error.message });
-    throw new Error('Failed to analyze image');
+    logger.error('Error analyzing image with Gemini Vision', { error: error.message, model: modelName });
+    throw new Error('Failed to analyze image: ' + error.message);
   }
 }
 
@@ -172,8 +230,23 @@ Provide a helpful, accurate answer:`;
   }
 }
 
+/**
+ * Generate embedding values (vector) for the given text using Gemini.
+ */
+async function generateEmbeddings(text) {
+  try {
+    const model = genAI.getGenerativeModel({ model: 'text-embedding-004' });
+    const result = await model.embedContent(text.substring(0, 8000));
+    return result.embedding.values;
+  } catch (error) {
+    logger.error('Error generating embeddings with Gemini', { error: error.message });
+    return null;
+  }
+}
+
 module.exports = {
   generateDocumentSummary,
   analyzeImage,
-  chatWithDocument
+  chatWithDocument,
+  generateEmbeddings
 };

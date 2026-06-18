@@ -11,6 +11,10 @@ const documentDataSchema = new mongoose.Schema({
     type: Object,
     required: true
   },
+  embeddings: {
+    type: [Number],
+    required: false
+  },
   createdAt: {
     type: Date,
     default: Date.now
