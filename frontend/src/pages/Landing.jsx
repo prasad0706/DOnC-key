@@ -120,12 +120,12 @@ const Landing = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div className="card-premium p-8">
               <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-6">
                 <DocumentTextIcon className="h-6 w-6" />
               </div>
-              <h3 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">Dynamic AI Sandbox</h3>
+              <h3 className="text-xl font-bold mb-3 text-slate-900 dark:text-white ">Dynamic AI Sandbox</h3>
               <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
                 Test API requests directly from the browser inside our integrated sandbox playground. Inspect extraction payloads in real-time.
               </p>
