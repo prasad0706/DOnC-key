@@ -59,3 +59,40 @@ worker.on('failed', (job, err) => {
 });
 
 console.log('Document processing worker started');
+
+// Webhook delivery worker
+const axios = require('axios');
+const webhookWorker = new Worker('webhookDelivery', async job => {
+  const { url, payload } = job.data;
+  console.log(`Worker: Delivering webhook event "${payload.event}" to ${url}`);
+
+  await axios.post(url, payload, {
+    headers: {
+      'Content-Type': 'application/json',
+      'User-Agent': 'DOnC-key-Platform/1.0'
+    },
+    timeout: 5000
+  });
+
+  console.log(`Worker: Webhook successfully delivered to ${url}`);
+  return { success: true, url };
+}, {
+  connection: redisConnection,
+  concurrency: 5, // Dispatch up to 5 webhooks concurrently
+  removeOnComplete: {
+    count: 100
+  },
+  removeOnFail: {
+    count: 100
+  }
+});
+
+webhookWorker.on('error', err => {
+  console.error('Webhook Worker error:', err);
+});
+
+webhookWorker.on('failed', (job, err) => {
+  console.error(`Webhook Job ${job?.id} failed to deliver to ${job?.data?.url}:`, err.message);
+});
+
+console.log('Webhook delivery worker started');

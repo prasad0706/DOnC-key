@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const ApiKey = require('../models/ApiKey');
 const DocumentData = require('../models/DocumentData');
 const ApiUsage = require('../models/ApiUsage');
@@ -10,7 +10,7 @@ const logger = require('../utils/logger');
 const { dataApiLimiter } = require('../middleware/rateLimiter');
 
 /**
- * Verify API key using prefix-based lookup (O(1) DB lookup + 1 bcrypt compare)
+ * Verify API key using prefix-based lookup (O(1) DB lookup + SHA-256 hash match)
  * instead of scanning all keys with bcrypt.
  */
 async function verifyApiKey(req, res, next) {
@@ -48,20 +48,11 @@ async function verifyApiKey(req, res, next) {
   }
 
   try {
-    // Extract prefix for indexed lookup (first 12 chars)
     const keyPrefix = apiKey.substring(0, 12);
+    const hashedKey = crypto.createHash('sha256').update(apiKey).digest('hex');
 
-    // Find candidate keys by prefix (typically 1 result)
-    const candidates = await ApiKey.find({ keyPrefix, revoked: false });
-
-    let matchedKey = null;
-    for (const key of candidates) {
-      const isMatch = await bcrypt.compare(apiKey, key.keyHash);
-      if (isMatch) {
-        matchedKey = key;
-        break;
-      }
-    }
+    // O(1) indexed database match
+    const matchedKey = await ApiKey.findOne({ keyPrefix, keyHash: hashedKey, revoked: false });
 
     if (!matchedKey) {
       await ApiUsage.create({

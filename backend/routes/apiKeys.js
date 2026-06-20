@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
-const bcrypt = require('bcryptjs');
 const ApiKey = require('../models/ApiKey');
 const Document = require('../models/Document');
 const verifyToken = require('../middleware/auth');
@@ -29,7 +28,7 @@ router.post('/:documentId/api-keys', validate(paramSchemas.documentId, 'params')
     // Generate a random API key with a prefix for fast lookup
     const rawKey = `doc_${crypto.randomBytes(24).toString('hex')}`;
     const keyPrefix = rawKey.substring(0, 12); // Store first 12 chars for indexed lookup
-    const keyHash = await bcrypt.hash(rawKey, 10);
+    const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex');
 
     const apiKeyRecord = new ApiKey({
       documentId,

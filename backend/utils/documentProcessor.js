@@ -113,10 +113,10 @@ async function processDocument(documentId, fileUrl) {
 }
 
 /**
- * Dispatch webhooks to all registered active endpoints for a project.
+ * Queue webhook deliveries to all registered active endpoints for a project.
  */
 const Webhook = require('../models/Webhook');
-const axios = require('axios');
+const { webhookQueue } = require('./queue');
 
 async function triggerWebhooks(document, event, payloadData) {
   try {
@@ -128,7 +128,7 @@ async function triggerWebhooks(document, event, payloadData) {
 
     if (webhooks.length === 0) return;
 
-    logger.info('Dispatching webhooks', { documentId: document._id, event, count: webhooks.length });
+    logger.info('Queuing webhooks for delivery', { documentId: document._id, event, count: webhooks.length });
 
     const payload = {
       event,
@@ -140,20 +140,15 @@ async function triggerWebhooks(document, event, payloadData) {
     };
 
     const promises = webhooks.map(webhook => {
-      return axios.post(webhook.url, payload, {
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'DocumentIntelligencePlatform/1.0'
-        },
-        timeout: 5000
-      }).catch(err => {
-        logger.warn('Webhook delivery failed', { webhookId: webhook._id, url: webhook.url, error: err.message });
+      return webhookQueue.add('send-webhook', {
+        url: webhook.url,
+        payload
       });
     });
 
     await Promise.all(promises);
   } catch (error) {
-    logger.error('Error in triggerWebhooks dispatch', { error: error.message });
+    logger.error('Error in triggerWebhooks queuing', { error: error.message });
   }
 }
 
