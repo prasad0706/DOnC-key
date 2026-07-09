@@ -31,3 +31,4 @@ backend/temp/
 *.sln
 *.sw?
 Thumbs.db
+/.obsidian
