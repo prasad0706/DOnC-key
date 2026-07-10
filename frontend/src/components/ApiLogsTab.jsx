@@ -74,15 +74,15 @@ const ApiLogsTab = ({ documentId }) => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <div className="card-premium-no-hover p-5 flex flex-col justify-between">
-          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Total Requests</span>
+          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Requests</span>
           <span className="text-2xl font-black text-slate-900 dark:text-white mt-2">{stats.total}</span>
         </div>
         <div className="card-premium-no-hover p-5 flex flex-col justify-between">
-          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Avg Latency</span>
+          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Avg Latency</span>
           <span className="text-2xl font-black text-slate-900 dark:text-white mt-2">{stats.avgLatency} ms</span>
         </div>
         <div className="card-premium-no-hover p-5 flex flex-col justify-between">
-          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Success Rate</span>
+          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Success Rate</span>
           <span className={`text-2xl font-black mt-2 ${stats.successRate >= 90 ? 'text-emerald-500' : 'text-amber-500'}`}>
             {stats.successRate}%
           </span>
@@ -123,7 +123,7 @@ const ApiLogsTab = ({ documentId }) => {
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/40">
               {loading ? (
                 <tr>
-                  <td colSpan="5" className="px-6 py-6 text-center text-xs font-semibold text-slate-400 dark:text-slate-500">
+                  <td colSpan="5" className="px-6 py-6 text-center text-xs font-semibold text-slate-500 dark:text-slate-400">
                     Fetching API log audits...
                   </td>
                 </tr>
@@ -164,7 +164,7 @@ const ApiLogsTab = ({ documentId }) => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="5" className="px-6 py-8 text-center text-xs font-semibold text-slate-400 dark:text-slate-500">
+                  <td colSpan="5" className="px-6 py-8 text-center text-xs font-semibold text-slate-500 dark:text-slate-400">
                     No requests logged yet. Invoke the playground to populate logs.
                   </td>
                 </tr>

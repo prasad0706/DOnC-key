@@ -127,7 +127,7 @@ const WebhookSettingsTab = ({ projectId }) => {
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800/40">
                   {loading ? (
                     <tr>
-                      <td colSpan="3" className="px-6 py-6 text-center text-xs font-semibold text-slate-400 dark:text-slate-500">
+                      <td colSpan="3" className="px-6 py-6 text-center text-xs font-semibold text-slate-500 dark:text-slate-400">
                         Loading subscriptions...
                       </td>
                     </tr>
@@ -152,7 +152,7 @@ const WebhookSettingsTab = ({ projectId }) => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="3" className="px-6 py-8 text-center text-xs font-semibold text-slate-400 dark:text-slate-500">
+                      <td colSpan="3" className="px-6 py-8 text-center text-xs font-semibold text-slate-500 dark:text-slate-400">
                         No active webhooks configured for this project.
                       </td>
                     </tr>

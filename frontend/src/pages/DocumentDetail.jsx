@@ -253,28 +253,28 @@ const DocumentDetail = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 text-sm">
               <div className="space-y-1.5">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Pipeline Status</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Pipeline Status</p>
                 <p className={`font-bold ${document.status === 'ready' ? 'text-green-500' : document.status === 'failed' ? 'text-red-500' : 'text-amber-500'}`}>
                   {getStatusText(document.status)}
                 </p>
               </div>
 
               <div className="space-y-1.5">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Upload Date</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Upload Date</p>
                 <p className="font-bold text-slate-800 dark:text-slate-200">
                   {formatDate(document.uploadedAt)}
                 </p>
               </div>
 
               <div className="space-y-1.5">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">File Payload Size</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">File Payload Size</p>
                 <p className="font-bold text-slate-800 dark:text-slate-200">
                   {document.size}
                 </p>
               </div>
 
               <div className="space-y-1.5">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Format</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Format</p>
                 <p className="font-bold text-slate-800 dark:text-slate-200 uppercase">
                   {document.fileType || 'Unknown'}
                 </p>
@@ -332,7 +332,7 @@ const DocumentDetail = () => {
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800/40">
                     {apiKeysLoading ? (
                       <tr>
-                        <td colSpan="4" className="px-6 py-6 text-center text-xs font-semibold text-slate-400 dark:text-slate-500">
+                        <td colSpan="4" className="px-6 py-6 text-center text-xs font-semibold text-slate-500 dark:text-slate-400">
                           <div className="flex justify-center items-center gap-2">
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
                             <span>Fetching access profile...</span>
@@ -371,7 +371,7 @@ const DocumentDetail = () => {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="4" className="px-6 py-8 text-center text-xs font-semibold text-slate-400 dark:text-slate-500">
+                        <td colSpan="4" className="px-6 py-8 text-center text-xs font-semibold text-slate-500 dark:text-slate-400">
                           No external keys configured yet.
                         </td>
                       </tr>

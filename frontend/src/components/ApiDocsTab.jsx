@@ -37,7 +37,7 @@ const ApiDocsTab = ({ documentId }) => {
           {baseUrl}
         </div>
 
-        <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
           All document API endpoints are relative to this base URL.
         </p>
       </div>
@@ -51,7 +51,7 @@ const ApiDocsTab = ({ documentId }) => {
         </p>
 
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Header Parameter</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Header Parameter</span>
           <button
             onClick={() => copyToClipboard('x-api-key: your_document_api_key', 'auth')}
             className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
@@ -87,7 +87,7 @@ const ApiDocsTab = ({ documentId }) => {
           </p>
 
           <div className="space-y-2.5">
-            <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Response payload schema</h4>
+            <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Response payload schema</h4>
             <div className="p-4 bg-slate-900 dark:bg-slate-950 rounded-xl border border-slate-800 text-xs font-mono text-slate-300 overflow-x-auto whitespace-pre">
 {`{
   "documentId": "string",
@@ -104,7 +104,7 @@ const ApiDocsTab = ({ documentId }) => {
 
           <div className="space-y-2.5">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">cURL Example</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">cURL Example</span>
               <button
                 onClick={() => copyToClipboard(`curl -X GET ${baseUrl}/data \\\n  -H "x-api-key: YOUR_API_KEY"`, 'curl')}
                 className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"

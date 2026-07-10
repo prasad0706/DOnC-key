@@ -105,7 +105,7 @@ const Projects = () => {
 
             {projects.length === 0 ? (
                 <div className="card-premium-no-hover p-12 text-center flex flex-col items-center justify-center">
-                    <FolderIcon className="h-12 w-12 mx-auto mb-4 text-slate-400 dark:text-slate-500" />
+                    <FolderIcon className="h-12 w-12 mx-auto mb-4 text-slate-500 dark:text-slate-400" />
                     <h2 className="text-lg font-bold mb-2 text-slate-900 dark:text-white">No projects found</h2>
                     <p className="text-slate-500 dark:text-slate-400 max-w-sm">Create your first project to get started organizing your documents.</p>
                 </div>
@@ -137,7 +137,7 @@ const Projects = () => {
                                     <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                                         {project.documentCount || 0} Documents
                                     </span>
-                                    <span className="text-xs text-slate-400 dark:text-slate-500">
+                                    <span className="text-xs text-slate-500 dark:text-slate-400">
                                         {formatDate(project.createdAt)}
                                     </span>
                                 </div>

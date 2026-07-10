@@ -88,7 +88,7 @@ const TryApiTab = ({ documentId }) => {
       <div className="card-premium-no-hover p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-md font-bold text-slate-900 dark:text-white uppercase tracking-wider text-xs">Sandbox Authentication</h2>
-          <div className="flex items-center text-xs font-semibold text-slate-400 dark:text-slate-500">
+          <div className="flex items-center text-xs font-semibold text-slate-500 dark:text-slate-400">
             <InformationCircleIcon className="h-4 w-4 mr-1.5 text-blue-500" />
             <span>Document API key required</span>
           </div>
@@ -102,7 +102,7 @@ const TryApiTab = ({ documentId }) => {
             placeholder="Enter your secret API key (doc_xxxx...)"
             className="input-premium"
           />
-          <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
             Paste the API key generated for this document. It is verified using secure prefix matching.
           </p>
         </div>
@@ -128,7 +128,7 @@ const TryApiTab = ({ documentId }) => {
               <option value="data">GET /api/v1/data (Standard Extraction Wrapper)</option>
               <option value="extract">GET /api/v1/extract/:documentId (Direct Extracted Object)</option>
             </select>
-            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
               <ChevronDownIcon className="h-4.5 w-4.5" />
             </div>
           </div>

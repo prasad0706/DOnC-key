@@ -1,8 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { DocumentTextIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import { DocumentTextIcon, ArrowRightIcon, SunIcon, MoonIcon } from '@heroicons/react/24/outline';
+import { useTheme } from '../context/ThemeContext';
 
 const Landing = () => {
+  const { theme, toggleTheme } = useTheme();
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-slate-50 dark:bg-[#090d16] text-slate-800 dark:text-slate-200 transition-colors duration-300">
       {/* Background Spotlight Glows */}
@@ -22,9 +25,22 @@ const Landing = () => {
             <a href="#features" className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Features</a>
             <a href="#how-it-works" className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Documentation</a>
           </nav>
-          <Link to="/login" className="btn-secondary py-2 px-5">
-            Sign In
-          </Link>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={toggleTheme}
+              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-200 shadow-sm"
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? (
+                <SunIcon className="h-5 w-5" />
+              ) : (
+                <MoonIcon className="h-5 w-5" />
+              )}
+            </button>
+            <Link to="/login" className="btn-secondary py-2 px-5">
+              Sign In
+            </Link>
+          </div>
         </div>
       </header>
 

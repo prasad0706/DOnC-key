@@ -181,7 +181,7 @@ const Dashboard = () => {
         {/* Total Documents */}
         <div className="card-premium p-6 flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Total Documents</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Documents</p>
             <p className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
               {stats.totalDocuments}
             </p>
@@ -194,7 +194,7 @@ const Dashboard = () => {
         {/* Processing Status */}
         <div className="card-premium p-6 flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Processing</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Processing</p>
             <p className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
               {stats.processingDocuments}
             </p>
@@ -212,7 +212,7 @@ const Dashboard = () => {
         {/* API Keys */}
         <div className="card-premium p-6 flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">API Keys</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">API Keys</p>
             <p className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
               {stats.apiKeys}
             </p>
@@ -225,7 +225,7 @@ const Dashboard = () => {
         {/* Total API Calls */}
         <div className="card-premium p-6 flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">API Calls</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">API Calls</p>
             <p className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
               {stats.totalApiCalls}
             </p>
@@ -268,7 +268,7 @@ const Dashboard = () => {
 
                   <div className="flex items-center my-4">
                     <div className="flex-grow border-t border-slate-100 dark:border-slate-800/60"></div>
-                    <span className="px-3 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">OR</span>
+                    <span className="px-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">OR</span>
                     <div className="flex-grow border-t border-slate-100 dark:border-slate-800/60"></div>
                   </div>
 

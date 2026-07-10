@@ -160,7 +160,7 @@ const Documents = () => {
 
         {/* Search Type Button Group */}
         <div className="flex items-center space-x-2">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mr-2">Search Mode:</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mr-2">Search Mode:</span>
           <button
             onClick={() => setSearchType('text')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
@@ -191,7 +191,7 @@ const Documents = () => {
       {searchResults && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Found {searchResults.total} result{searchResults.total !== 1 ? 's' : ''} for "{searchResults.query}"
             </p>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400 border border-blue-100 dark:border-blue-900/35 uppercase">
@@ -221,7 +221,7 @@ const Documents = () => {
       {/* Documents Table */}
       {documents.length === 0 ? (
         <div className="card-premium-no-hover p-12 text-center flex flex-col items-center justify-center">
-          <DocumentTextIcon className="h-12 w-12 mx-auto mb-4 text-slate-400 dark:text-slate-500" />
+          <DocumentTextIcon className="h-12 w-12 mx-auto mb-4 text-slate-500 dark:text-slate-400" />
           <h2 className="text-lg font-bold mb-2 text-slate-900 dark:text-white">No documents found</h2>
           <p className="text-slate-500 dark:text-slate-400 max-w-sm mb-6">Upload your first document to get started structuring data.</p>
           <Link to="/documents/upload" className="btn-secondary">
