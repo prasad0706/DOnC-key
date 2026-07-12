@@ -2,12 +2,23 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { DocumentTextIcon, ArrowRightIcon, SunIcon, MoonIcon } from '@heroicons/react/24/outline';
 import { useTheme } from '../context/ThemeContext';
+import Aurora from '../components/Aurora';
 
 const Landing = () => {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-slate-50 dark:bg-[#090d16] text-slate-800 dark:text-slate-200 transition-colors duration-300">
+    <div className="relative min-h-screen overflow-hidden text-slate-800 dark:text-slate-200 transition-colors duration-300">
+      {/* Aurora Animated Background */}
+      <div className="fixed inset-0 -z-10 pointer-events-none opacity-40 dark:opacity-40">
+        <Aurora
+          colorStops={["#7cff67", "#B497CF", "#5227FF"]}
+          blend={0.5}
+          amplitude={1.0}
+          speed={1}
+        />
+      </div>
+
       {/* Background Spotlight Glows */}
       <div className="glow-spotlight glow-blue w-[500px] h-[500px] top-[-10%] left-[-10%]" />
       <div className="glow-spotlight glow-purple w-[600px] h-[600px] bottom-[-20%] right-[-10%]" />
@@ -125,7 +136,7 @@ const Landing = () => {
       </main>
 
       {/* Features Section */}
-      <section id="features" className="py-24 bg-slate-100/50 dark:bg-slate-950/20 border-t border-slate-100 dark:border-slate-800/40 relative">
+      <section id="features" className="py-24 bg-slate-100/30 dark:bg-slate-950/20 border-t border-slate-100 dark:border-slate-800/40 relative">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-950 dark:text-white mb-4">
