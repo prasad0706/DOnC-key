@@ -14,7 +14,7 @@ const apiKeySchema = new mongoose.Schema({
   keyPrefix: {
     type: String,
     required: true,
-    index: true // Indexed for fast O(1) lookup instead of scanning all keys
+    index: true // Indexed for high-performance B-tree lookup instead of scanning all keys
   },
   revoked: {
     type: Boolean,

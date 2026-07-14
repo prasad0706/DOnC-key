@@ -10,7 +10,7 @@ const logger = require('../utils/logger');
 const { dataApiLimiter } = require('../middleware/rateLimiter');
 
 /**
- * Verify API key using prefix-based lookup (O(1) DB lookup + SHA-256 hash match)
+ * Verify API key using prefix-based lookup (high-performance B-tree DB lookup + SHA-256 hash match)
  * instead of scanning all keys with bcrypt.
  */
 async function verifyApiKey(req, res, next) {
@@ -51,7 +51,7 @@ async function verifyApiKey(req, res, next) {
     const keyPrefix = apiKey.substring(0, 12);
     const hashedKey = crypto.createHash('sha256').update(apiKey).digest('hex');
 
-    // O(1) indexed database match
+    // B-tree indexed database lookup
     const matchedKey = await ApiKey.findOne({ keyPrefix, keyHash: hashedKey, revoked: false });
 
     if (!matchedKey) {

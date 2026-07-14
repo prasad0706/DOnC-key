@@ -136,7 +136,7 @@ const Landing = () => {
       </main>
 
       {/* Features Section */}
-      <section id="features" className="py-24 bg-slate-100/30 dark:bg-slate-950/20 border-t border-slate-100 dark:border-slate-800/40 relative">
+      <section id="features" className="py-24 bg-slate-100/20 dark:bg-slate-950/20 border-t border-slate-100 dark:border-slate-800/40 relative">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-950 dark:text-white mb-4">

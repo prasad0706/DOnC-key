@@ -199,6 +199,6 @@ To prepare the platform for real-world production limits, DOnC-key implements th
 ---
 
 ## 🔒 Security Practices
-- **Cryptographic SHA-256 Key Hashing**: API Keys are hashed using SHA-256 before database insertion. Incoming requests are hashed in real-time and matched against an indexed prefix for sub-millisecond, O(1) query speeds, eliminating slow hashing layers like bcrypt in high-frequency path execution.
-- **Indexed Prefix Lookups**: Verifies API keys in $O(1)$ time by querying a 12-character index prefix, bypassing expensive full-table scans.
+- **Cryptographic SHA-256 Key Hashing**: API Keys are hashed using SHA-256 before database insertion. Incoming requests are hashed in real-time and matched against an indexed prefix for sub-millisecond, high-performance B-tree indexed prefix lookups ($\mathcal{O}(\log n)$ complexity), eliminating slow hashing layers like bcrypt in high-frequency path execution.
+- **Indexed Prefix Lookups**: Verifies API keys via high-performance B-tree indexed prefix lookups ($\mathcal{O}(\log n)$ complexity) by querying a 12-character index prefix, bypassing expensive full-table scans.
 - **Token Auth Scoping**: Isolates resources per Firebase Auth tenant/UID boundary.
