@@ -194,7 +194,8 @@ To prepare the platform for real-world production limits, DOnC-key implements th
    If an external webhook target server goes offline, direct inline requests will drop. DOnC-key isolates webhook dispatching to a dedicated `webhookDelivery` queue. If delivery fails (non-200 responses or timeout errors), the background worker automatically retries the delivery up to 5 times using exponential delay margins.
 
 3. **State Isolation in Distributed Environments**:
-   When using the local file storage fallback, uploads are saved locally on the API container's file system (`/backend/temp`). For multiple workers or API instances in a distributed setup (e.g. Kubernetes, AWS ECS), containers **must share a persistent Docker volume mount** to coordinate file accesses. In production, this constraint is resolved by activating the Firebase Storage (or AWS S3) provider, ensuring all worker instances pull files from a centralized cloud bucket.
+   - **Production Architecture**: In multi-container production deployments (e.g., Kubernetes, AWS ECS), API backend nodes and BullMQ worker nodes run statelessly. File assets are streamed directly to centralized Cloud Object Storage (Firebase Storage / AWS S3). Background workers download files statelessly via secure network URLs, completely eliminating local disk state dependencies.
+   - **Local Development Fallback**: For lightweight single-instance local development without cloud storage credentials, the backend provides an automatic fallback (`/backend/temp`). In multi-container Docker testing without cloud credentials, worker processes access `/backend/temp` via a shared volume mount.
 
 ---
 

@@ -68,12 +68,14 @@ router.post('/upload', verifyToken, uploadLimiter, upload.array('document', 10),
       let storageProvider = 'firebase';
       let localFilePath = '';
 
-      // Check if STORAGE_PROVIDER is explicitly set to local, or fallback
+      // STORAGE SELECTION ARCHITECTURE:
+      // Production: Cloud Object Storage (Firebase Storage / AWS S3) ensures stateless API & Worker containers.
+      // Development Fallback: Single-node local disk (/backend/temp) allows offline testing without cloud billing.
       const useLocalOnly = process.env.STORAGE_PROVIDER === 'local';
 
       if (!useLocalOnly) {
         try {
-          // Attempt Firebase upload
+          // Primary: Attempt cloud object storage upload (Firebase Storage / S3)
           const fileName = `${documentId}_${file.originalname}`;
           const cleanFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '');
           const firebaseFile = bucket.file(cleanFileName);
@@ -99,7 +101,10 @@ router.post('/upload', verifyToken, uploadLimiter, upload.array('document', 10),
           storagePath = `gs://${bucket.name}/${cleanFileName}`;
           storageProvider = 'firebase';
         } catch (fbError) {
-          logger.warn('Firebase upload failed, falling back to local storage', { error: fbError.message });
+          logger.warn('Cloud storage upload failed (or credentials unconfigured). Falling back to single-node local storage.', {
+            error: fbError.message,
+            note: 'In multi-container production setups, use Firebase/S3 or shared volume mounts for workers.'
+          });
           storageProvider = 'local';
         }
       } else {

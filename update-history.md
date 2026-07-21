@@ -92,3 +92,16 @@ This document records the incremental updates made to the DOnC-key platform, cat
     * [data.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/routes/data.js#L13) (Verify API key middleware documentation)
     * [README.md](file:///c:/Users/Prasad/Downloads/Projects/donk/README.md) (Security practices description)
   * **Roadmap Update**: Marked "Fix the Big-O Indexing Claim" as complete in [todo-tasks.md](file:///c:/Users/Prasad/Downloads/Projects/donk/todo-tasks.md).
+
+---
+
+### 📝 Prompt 10: Storage Architecture & Distributed State Defense (Option B)
+* **Date**: July 21, 2026
+* **Objective**: Refine storage architecture logic and interview documentation for state isolation without adding unnecessary Docker overhead.
+* **Work Done & Edits**:
+  * **Architecture Refinement**: Clarified cloud object storage (Firebase/S3) as the stateless production mechanism and single-node disk fallback (`/backend/temp`) as the offline dev mechanism.
+  * **Modified files**:
+    * [documents.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/routes/documents.js#L71) (Added storage provider selection comments and fallback warnings)
+    * [documentProcessor.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/utils/documentProcessor.js#L31) (Enhanced logger metadata for local vs cloud storage loading)
+    * [README.md](file:///c:/Users/Prasad/Downloads/Projects/donk/README.md) (Updated Section 3 under Resilience & Distributed Scaling Constraints for interview defense)
+  * **Roadmap Update**: Marked "Fix the Distributed State Anti-Pattern" as complete in [todo-tasks.md](file:///c:/Users/Prasad/Downloads/Projects/donk/todo-tasks.md).

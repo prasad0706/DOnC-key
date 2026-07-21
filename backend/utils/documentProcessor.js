@@ -28,14 +28,16 @@ async function processDocument(documentId, fileUrl) {
       throw new Error(`Document with ID ${documentId} not found in database`);
     }
 
-    // 2. Load file buffer (local vs remote)
+    // 2. Load file buffer based on storage provider context
+    // Cloud storage (firebase/S3): Stateless network download accessible across all distributed worker nodes.
+    // Local storage: Direct disk read for single-node development environments.
     let fileBuffer;
     if (doc.storageProvider === 'local') {
-      logger.info('Reading local file', { documentId, path: doc.tempFilePath });
+      logger.info('Reading file from local single-node storage', { documentId, path: doc.tempFilePath, provider: 'local' });
       const fs = require('fs').promises;
       fileBuffer = await fs.readFile(doc.tempFilePath);
     } else {
-      logger.info('Downloading file from URL', { documentId, url: fileUrl?.substring(0, 50) });
+      logger.info('Downloading file from cloud object storage', { documentId, url: fileUrl?.substring(0, 50), provider: doc.storageProvider || 'firebase' });
       fileBuffer = await downloadFile(fileUrl);
     }
 
