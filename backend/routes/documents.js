@@ -12,8 +12,26 @@ const { documentQueue, generateDocumentId } = require('../utils/queue');
 const logger = require('../utils/logger');
 const { NotFoundError } = require('../utils/errors');
 
-// Multer configuration for file uploads
-const storage = multer.memoryStorage();
+const fsSync = require('fs');
+const path = require('path');
+
+// Ensure temporary upload directory exists for Multer disk storage (prevents RAM exhaustion)
+const uploadTempDir = path.join(__dirname, '../temp/uploads_tmp');
+if (!fsSync.existsSync(uploadTempDir)) {
+  fsSync.mkdirSync(uploadTempDir, { recursive: true });
+}
+
+// Multer diskStorage configuration (stream uploads directly to disk instead of V8 RAM memoryStorage)
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadTempDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + '-' + file.originalname.replace(/[^a-zA-Z0-9._-]/g, ''));
+  }
+});
+
 const upload = multer({
   storage: storage,
   limits: {
@@ -58,7 +76,6 @@ router.post('/upload', verifyToken, uploadLimiter, upload.array('document', 10),
     }
 
     const fs = require('fs').promises;
-    const path = require('path');
     const results = [];
 
     for (const file of files) {
@@ -73,61 +90,71 @@ router.post('/upload', verifyToken, uploadLimiter, upload.array('document', 10),
       // Development Fallback: Single-node local disk (/backend/temp) allows offline testing without cloud billing.
       const useLocalOnly = process.env.STORAGE_PROVIDER === 'local';
 
-      if (!useLocalOnly) {
-        try {
-          // Primary: Attempt cloud object storage upload (Firebase Storage / S3)
-          const fileName = `${documentId}_${file.originalname}`;
-          const cleanFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '');
-          const firebaseFile = bucket.file(cleanFileName);
+      try {
+        if (!useLocalOnly) {
+          try {
+            // Primary: Stream upload directly from disk path to Cloud Storage (Firebase Storage / S3)
+            const fileName = `${documentId}_${file.originalname}`;
+            const cleanFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '');
 
-          await firebaseFile.save(file.buffer, {
-            metadata: {
-              contentType: file.mimetype,
+            await bucket.upload(file.path, {
+              destination: cleanFileName,
               metadata: {
-                originalName: file.originalname,
-                documentId: documentId,
-                projectId: projectId,
-                userId: req.user.uid
+                contentType: file.mimetype,
+                metadata: {
+                  originalName: file.originalname,
+                  documentId: documentId,
+                  projectId: projectId,
+                  userId: req.user.uid
+                }
               }
-            }
-          });
+            });
 
-          const [signedUrl] = await firebaseFile.getSignedUrl({
-            action: 'read',
-            expires: '03-09-2491'
-          });
+            const firebaseFile = bucket.file(cleanFileName);
+            const [signedUrl] = await firebaseFile.getSignedUrl({
+              action: 'read',
+              expires: '03-09-2491'
+            });
 
-          fileUrl = signedUrl;
-          storagePath = `gs://${bucket.name}/${cleanFileName}`;
-          storageProvider = 'firebase';
-        } catch (fbError) {
-          logger.warn('Cloud storage upload failed (or credentials unconfigured). Falling back to single-node local storage.', {
-            error: fbError.message,
-            note: 'In multi-container production setups, use Firebase/S3 or shared volume mounts for workers.'
-          });
+            fileUrl = signedUrl;
+            storagePath = `gs://${bucket.name}/${cleanFileName}`;
+            storageProvider = 'firebase';
+          } catch (fbError) {
+            logger.warn('Cloud storage upload failed (or credentials unconfigured). Falling back to single-node local storage.', {
+              error: fbError.message,
+              note: 'In multi-container production setups, use Firebase/S3 or shared volume mounts for workers.'
+            });
+            storageProvider = 'local';
+          }
+        } else {
           storageProvider = 'local';
         }
-      } else {
-        storageProvider = 'local';
-      }
 
-      if (storageProvider === 'local') {
-        // Handle local storage
-        const tempDir = path.join(__dirname, '../temp');
-        await fs.mkdir(tempDir, { recursive: true });
+        if (storageProvider === 'local') {
+          // Handle local storage by moving/copying uploaded disk file to temp destination
+          const tempDir = path.join(__dirname, '../temp');
+          await fs.mkdir(tempDir, { recursive: true });
 
-        const fileName = `${documentId}_${file.originalname}`;
-        const cleanFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '');
-        localFilePath = path.join(tempDir, cleanFileName);
+          const fileName = `${documentId}_${file.originalname}`;
+          const cleanFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '');
+          localFilePath = path.join(tempDir, cleanFileName);
 
-        await fs.writeFile(localFilePath, file.buffer);
+          await fs.copyFile(file.path, localFilePath);
 
-        // Serve URL statically from express
-        const baseUrl = process.env.VITE_API_BASE_URL 
-          ? process.env.VITE_API_BASE_URL.replace('/api', '') 
-          : 'http://localhost:5000';
-        fileUrl = `${baseUrl}/uploads/${cleanFileName}`;
-        storagePath = localFilePath; // Save the absolute local file path
+          // Serve URL statically from express
+          const baseUrl = process.env.VITE_API_BASE_URL 
+            ? process.env.VITE_API_BASE_URL.replace('/api', '') 
+            : 'http://localhost:5000';
+          fileUrl = `${baseUrl}/uploads/${cleanFileName}`;
+          storagePath = localFilePath; // Save the absolute local file path
+        }
+      } finally {
+        // Clean up temporary Multer upload artifact from disk to prevent storage leaks
+        try {
+          await fs.unlink(file.path);
+        } catch (cleanupErr) {
+          // Ignore if already moved/removed
+        }
       }
 
       // Parse customSchema if it was passed

@@ -105,3 +105,28 @@ This document records the incremental updates made to the DOnC-key platform, cat
     * [documentProcessor.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/utils/documentProcessor.js#L31) (Enhanced logger metadata for local vs cloud storage loading)
     * [README.md](file:///c:/Users/Prasad/Downloads/Projects/donk/README.md) (Updated Section 3 under Resilience & Distributed Scaling Constraints for interview defense)
   * **Roadmap Update**: Marked "Fix the Distributed State Anti-Pattern" as complete in [todo-tasks.md](file:///c:/Users/Prasad/Downloads/Projects/donk/todo-tasks.md).
+
+---
+
+### 📝 Prompt 11: Timing-Safe API Key Verification Security Upgrade
+* **Date**: July 22, 2026
+* **Objective**: Eliminate timing side-channel attack vulnerabilities in API key verification and adopt standard `prefix.secret` formatting.
+* **Work Done & Edits**:
+  * **Key Formatting**: Updated API key generation to produce `doc_<8-hex-prefix>.<48-hex-secret>` tokens.
+  * **Timing Attack Defense**: Updated `verifyApiKey` middleware in `data.js` to query database candidate keys strictly by `keyPrefix`, performing SHA-256 hash comparison in Node.js memory using constant-time `crypto.timingSafeEqual()`.
+  * **Modified files**:
+    * [apiKeys.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/routes/apiKeys.js#L28) (Formatted newly generated keys as prefix.secret)
+    * [data.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/routes/data.js#L50) (Upgraded middleware to use prefix-only DB queries and crypto.timingSafeEqual)
+  * **Roadmap Update**: Marked "Fix API Key Verification Security" as complete in [todo-tasks.md](file:///c:/Users/Prasad/Downloads/Projects/donk/todo-tasks.md).
+
+---
+
+### 📝 Prompt 12: Fix RAM Exhaustion Vulnerability (Multer diskStorage)
+* **Date**: July 26, 2026
+* **Objective**: Reconfigure Multer from `memoryStorage` to `diskStorage` to eliminate process-crashing Out-of-Memory (OOM) risks during concurrent file uploads.
+* **Work Done & Edits**:
+  * **Disk Storage Engine**: Replaced `multer.memoryStorage()` with `multer.diskStorage()` targeting temporary disk directory `backend/temp/uploads_tmp`.
+  * **Direct Streaming & Cleanup**: Updated Firebase cloud upload to use `bucket.upload(file.path, ...)` streaming directly from disk path without buffering in V8 RAM. Added `finally` cleanup block to automatically delete temporary Multer artifacts after saving to storage.
+  * **Modified files**:
+    * [documents.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/routes/documents.js#L15) (Reconfigured Multer storage engine and added disk cleanup logic)
+  * **Roadmap Update**: Marked "Fix RAM Exhaustion Vulnerability" as complete in [todo-tasks.md](file:///c:/Users/Prasad/Downloads/Projects/donk/todo-tasks.md).

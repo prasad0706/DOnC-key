@@ -48,11 +48,25 @@ async function verifyApiKey(req, res, next) {
   }
 
   try {
-    const keyPrefix = apiKey.substring(0, 12);
+    // Extract keyPrefix (supports prefix.secret format and legacy 12-char keys)
+    const keyPrefix = apiKey.includes('.') ? apiKey.split('.')[0] : apiKey.substring(0, 12);
     const hashedKey = crypto.createHash('sha256').update(apiKey).digest('hex');
+    const incomingHashBuffer = Buffer.from(hashedKey, 'hex');
 
-    // B-tree indexed database lookup
-    const matchedKey = await ApiKey.findOne({ keyPrefix, keyHash: hashedKey, revoked: false });
+    // Query active candidates by B-tree indexed prefix only (bypassing DB string equality on hash)
+    const candidateKeys = await ApiKey.find({ keyPrefix, revoked: false });
+
+    let matchedKey = null;
+    for (const candidate of candidateKeys) {
+      const candidateHashBuffer = Buffer.from(candidate.keyHash, 'hex');
+      if (
+        candidateHashBuffer.length === incomingHashBuffer.length &&
+        crypto.timingSafeEqual(candidateHashBuffer, incomingHashBuffer)
+      ) {
+        matchedKey = candidate;
+        break;
+      }
+    }
 
     if (!matchedKey) {
       await ApiUsage.create({

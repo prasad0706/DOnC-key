@@ -8,12 +8,12 @@
 - [x] **Fix the Distributed State Anti-Pattern**
   - [x] Refine architectural comments in [documents.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/routes/documents.js#L71) and [documentProcessor.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/utils/documentProcessor.js#L31) clarifying stateless cloud storage vs single-node local fallback
   - [x] Document production cloud object storage (Firebase/S3) vs single-instance local fallback in [README.md](file:///c:/Users/Prasad/Downloads/Projects/donk/README.md) for interview defense
-- [ ] **Fix API Key Verification Security**
-  - [ ] Format keys as prefix.secret (e.g., `doc_abc123.xyz789`) on generation in [apiKeys.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/routes/apiKeys.js)
-  - [ ] Update key verification in [data.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/routes/data.js) to query only by prefix and use `crypto.timingSafeEqual` in application memory
-- [ ] **Fix RAM Exhaustion Vulnerability**
-  - [ ] Reconfigure Multer storage engine in [documents.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/routes/documents.js) away from `memoryStorage`
-  - [ ] Implement streaming uploads or `diskStorage`
+- [x] **Fix API Key Verification Security**
+  - [x] Format keys as prefix.secret (e.g., `doc_abc123.xyz789`) on generation in [apiKeys.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/routes/apiKeys.js)
+  - [x] Update key verification in [data.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/routes/data.js) to query only by prefix and use `crypto.timingSafeEqual` in application memory
+- [x] **Fix RAM Exhaustion Vulnerability**
+  - [x] Reconfigure Multer storage engine in [documents.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/routes/documents.js) away from `memoryStorage`
+  - [x] Implement streaming uploads or `diskStorage`
 - [ ] **Fix Document Chunking Strategy**
   - [ ] Implement a Recursive Character Text Splitting helper (e.g., 500 tokens, 50-token overlap)
   - [ ] Refactor [documentProcessor.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/utils/documentProcessor.js) to chunk text and generate vector embeddings for chunks instead of the entire document

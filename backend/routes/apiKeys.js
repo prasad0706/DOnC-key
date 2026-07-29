@@ -25,9 +25,10 @@ router.post('/:documentId/api-keys', validate(paramSchemas.documentId, 'params')
       throw new ValidationError('Document is not ready for API key generation');
     }
 
-    // Generate a random API key with a prefix for fast lookup
-    const rawKey = `doc_${crypto.randomBytes(24).toString('hex')}`;
-    const keyPrefix = rawKey.substring(0, 12); // Store first 12 chars for indexed lookup
+    // Generate API key formatted as prefix.secret (e.g. doc_1a2b3c4d.secret_part)
+    const keyPrefix = `doc_${crypto.randomBytes(4).toString('hex')}`; // 12-character prefix for DB lookup
+    const secretPart = crypto.randomBytes(24).toString('hex');
+    const rawKey = `${keyPrefix}.${secretPart}`;
     const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex');
 
     const apiKeyRecord = new ApiKey({
