@@ -1,12 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
-import { 
-  ClockIcon, 
-  ArrowPathIcon,
-  CheckCircleIcon,
-  XCircleIcon
-} from '@heroicons/react/24/outline';
+import { ArrowPathIcon } from '@heroicons/react/24/outline';
 import api from '../utils/api';
+import StatusStamp from './StatusStamp';
 
 const ApiLogsTab = ({ documentId }) => {
   const { theme } = useTheme();
@@ -28,7 +24,6 @@ const ApiLogsTab = ({ documentId }) => {
       const logsData = response.data.logs || [];
       setLogs(logsData);
 
-      // Compute statistics
       if (logsData.length > 0) {
         const total = response.data.total || logsData.length;
         const totalLatency = logsData.reduce((acc, curr) => acc + curr.latencyMs, 0);
@@ -73,30 +68,30 @@ const ApiLogsTab = ({ documentId }) => {
     <div className="space-y-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div className="card-premium-no-hover p-5 flex flex-col justify-between">
-          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Requests</span>
-          <span className="text-2xl font-black text-slate-900 dark:text-white mt-2">{stats.total}</span>
+        <div className="card-static p-5 flex flex-col justify-between">
+          <span className="text-[10px] font-bold text-[var(--ink-muted)] uppercase tracking-wider">Total Requests</span>
+          <span className="text-2xl font-display font-semibold text-[var(--ink)] mt-2">{stats.total}</span>
         </div>
-        <div className="card-premium-no-hover p-5 flex flex-col justify-between">
-          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Avg Latency</span>
-          <span className="text-2xl font-black text-slate-900 dark:text-white mt-2">{stats.avgLatency} ms</span>
+        <div className="card-static p-5 flex flex-col justify-between">
+          <span className="text-[10px] font-bold text-[var(--ink-muted)] uppercase tracking-wider">Avg Latency</span>
+          <span className="text-2xl font-display font-semibold text-[var(--ink)] mt-2">{stats.avgLatency} ms</span>
         </div>
-        <div className="card-premium-no-hover p-5 flex flex-col justify-between">
-          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Success Rate</span>
-          <span className={`text-2xl font-black mt-2 ${stats.successRate >= 90 ? 'text-emerald-500' : 'text-amber-500'}`}>
+        <div className="card-static p-5 flex flex-col justify-between">
+          <span className="text-[10px] font-bold text-[var(--ink-muted)] uppercase tracking-wider">Success Rate</span>
+          <span className={`text-2xl font-display font-semibold mt-2 ${stats.successRate >= 90 ? 'text-[var(--accent-teal)]' : 'text-[var(--accent-ochre)]'}`}>
             {stats.successRate}%
           </span>
         </div>
       </div>
 
       {/* Logs Table Card */}
-      <div className="card-premium-no-hover p-6">
+      <div className="card-static p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-md font-bold text-slate-900 dark:text-white uppercase tracking-wider text-xs">Request History</h2>
+          <h2 className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider">Request Audit Log</h2>
           <button
             onClick={fetchLogs}
             disabled={loading}
-            className="btn-secondary p-2 rounded-xl flex items-center justify-center"
+            className="btn-secondary p-2 flex items-center justify-center"
             title="Refresh logs"
           >
             <ArrowPathIcon className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
@@ -104,68 +99,58 @@ const ApiLogsTab = ({ documentId }) => {
         </div>
 
         {error && (
-          <div className="p-4 rounded-xl border text-sm bg-rose-50 text-rose-700 border-rose-200/50 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20 mb-4">
+          <div className="p-4 rounded text-sm bg-red-500/10 text-[var(--accent-red)] border border-red-500/20 mb-4">
             {error}
           </div>
         )}
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-100 dark:divide-slate-800/40">
+          <table className="min-w-full">
             <thead>
               <tr>
                 <th scope="col" className="table-header-premium">Timestamp</th>
                 <th scope="col" className="table-header-premium">Method</th>
                 <th scope="col" className="table-header-premium">Endpoint</th>
-                <th scope="col" className="table-header-premium">Status</th>
+                <th scope="col" className="table-header-premium">Ink Status Stamp</th>
                 <th scope="col" className="table-header-premium text-right">Latency</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/40">
+            <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="5" className="px-6 py-6 text-center text-xs font-semibold text-slate-500 dark:text-slate-400">
-                    Fetching API log audits...
+                  <td colSpan="5" className="px-6 py-6 text-center text-xs font-mono text-[var(--ink-muted)]">
+                    Fetching API log audit records...
                   </td>
                 </tr>
               ) : logs.length > 0 ? (
                 logs.map((log) => (
                   <tr key={log._id} className="table-row-premium">
-                    <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-500 dark:text-slate-400">
+                    <td className="px-6 py-4 whitespace-nowrap font-mono text-xs text-[var(--ink-muted)]">
                       {formatDate(log.timestamp)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono ${
-                        log.method === 'GET' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400'
-                      }`}>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-[var(--surface-sunken)] border border-[var(--border)] text-[var(--accent-teal)]">
                         {log.method}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-xs font-mono text-slate-700 dark:text-slate-300 truncate max-w-xs" title={log.endpoint}>
+                    <td className="px-6 py-4 whitespace-nowrap text-xs font-mono text-[var(--ink)] truncate max-w-xs" title={log.endpoint}>
                       {log.endpoint}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`badge-premium ${
-                        log.statusCode >= 200 && log.statusCode < 300
-                          ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200/50'
-                          : 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border border-rose-200/50'
-                      }`}>
-                        {log.statusCode >= 200 && log.statusCode < 300 ? (
-                          <CheckCircleIcon className="h-3.5 w-3.5 mr-1" />
-                        ) : (
-                          <XCircleIcon className="h-3.5 w-3.5 mr-1" />
-                        )}
-                        {log.statusCode}
-                      </span>
+                      <StatusStamp
+                        status={log.statusCode >= 200 && log.statusCode < 300 ? 'ready' : 'failed'}
+                        label={`${log.statusCode}`}
+                      />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-xs font-mono text-slate-600 dark:text-slate-400">
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-xs font-mono text-[var(--ink-muted)]">
                       {log.latencyMs} ms
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="5" className="px-6 py-8 text-center text-xs font-semibold text-slate-500 dark:text-slate-400">
-                    No requests logged yet. Invoke the playground to populate logs.
+                  <td colSpan="5" className="px-6 py-8 text-center text-xs font-mono text-[var(--ink-muted)]">
+                    No requests logged yet in registry.
                   </td>
                 </tr>
               )}

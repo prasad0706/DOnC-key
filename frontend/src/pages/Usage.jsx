@@ -5,7 +5,6 @@ import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js';
 import { getUsageAnalyticsWithRange } from '../utils/api';
 
-// Register ChartJS components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -33,7 +32,6 @@ const Usage = () => {
         setAnalytics(data);
         setLoading(false);
       } catch (err) {
-        // Fallback to empty mock structured data
         setAnalytics({
           apiCallsOverTime: { labels: [], data: [] },
           requestsPerDocument: { labels: [], data: [] },
@@ -52,9 +50,9 @@ const Usage = () => {
   if (loading) {
     return (
       <div className="p-6">
-        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-6">Usage Analytics</h1>
+        <h1 className="text-3xl font-display font-semibold text-[var(--ink)] mb-6">Usage & Registry Audit</h1>
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-10 w-10 border-2 border-[var(--border)] border-t-[var(--accent-teal)]"></div>
         </div>
       </div>
     );
@@ -63,15 +61,14 @@ const Usage = () => {
   if (error) {
     return (
       <div className="p-6">
-        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-6">Usage Analytics</h1>
-        <div className="p-4 rounded-xl border bg-rose-50 text-rose-700 border-rose-200/50 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20">
+        <h1 className="text-3xl font-display font-semibold text-[var(--ink)] mb-6">Usage & Registry Audit</h1>
+        <div className="p-4 rounded border bg-red-500/10 text-[var(--accent-red)] border-red-500/20">
           {error}
         </div>
       </div>
     );
   }
 
-  // Chart options dynamically mapped to theme tokens
   const getChartOptions = (title) => ({
     responsive: true,
     maintainAspectRatio: false,
@@ -79,48 +76,47 @@ const Usage = () => {
       legend: {
         position: 'top',
         labels: {
-          color: theme === 'dark' ? '#9ca3af' : '#475569',
-          font: { family: 'Plus Jakarta Sans', weight: '600', size: 11 }
+          color: theme === 'dark' ? '#93A0AC' : '#5B6A78',
+          font: { family: 'IBM Plex Sans', weight: '600', size: 11 }
         }
       },
       title: {
         display: true,
         text: title,
-        color: theme === 'dark' ? '#f8fafc' : '#0f172a',
-        font: { family: 'Outfit', weight: '700', size: 15 }
+        color: theme === 'dark' ? '#E9E6DA' : '#1B2A3A',
+        font: { family: 'Fraunces', weight: '600', size: 15 }
       }
     },
     scales: {
       x: {
         ticks: {
-          color: theme === 'dark' ? '#64748b' : '#64748b',
-          font: { family: 'Plus Jakarta Sans', size: 10 }
+          color: theme === 'dark' ? '#93A0AC' : '#5B6A78',
+          font: { family: 'IBM Plex Mono', size: 10 }
         },
         grid: {
-          color: theme === 'dark' ? 'rgba(51,65,85,0.2)' : 'rgba(241,245,249,0.7)'
+          color: theme === 'dark' ? '#2B3542' : '#D9D3BE'
         }
       },
       y: {
         ticks: {
-          color: theme === 'dark' ? '#64748b' : '#64748b',
-          font: { family: 'Plus Jakarta Sans', size: 10 }
+          color: theme === 'dark' ? '#93A0AC' : '#5B6A78',
+          font: { family: 'IBM Plex Mono', size: 10 }
         },
         grid: {
-          color: theme === 'dark' ? 'rgba(51,65,85,0.2)' : 'rgba(241,245,249,0.7)'
+          color: theme === 'dark' ? '#2B3542' : '#D9D3BE'
         }
       }
     }
   });
 
-  // API Calls Over Time Chart
   const apiCallsChartData = {
     labels: analytics.apiCallsOverTime.labels,
     datasets: [
       {
         label: 'API Requests',
         data: analytics.apiCallsOverTime.data,
-        borderColor: '#3b82f6',
-        backgroundColor: 'rgba(59, 130, 246, 0.05)',
+        borderColor: '#0F6E67',
+        backgroundColor: 'rgba(15, 110, 103, 0.08)',
         tension: 0.35,
         fill: true,
         borderWidth: 2
@@ -128,26 +124,24 @@ const Usage = () => {
     ]
   };
 
-  // Requests Per Document Chart
   const requestsPerDocChartData = {
     labels: analytics.requestsPerDocument.labels,
     datasets: [
       {
         label: 'Requests',
         data: analytics.requestsPerDocument.data,
-        backgroundColor: '#6366f1',
-        borderRadius: 6
+        backgroundColor: '#C98A2C',
+        borderRadius: 4
       }
     ]
   };
 
-  // Error vs Success Chart
   const errorSuccessChartData = {
     labels: ['Success', 'Error'],
     datasets: [
       {
         data: [analytics.errorVsSuccess.success, analytics.errorVsSuccess.error],
-        backgroundColor: ['#10b981', '#f43f5e'],
+        backgroundColor: ['#0F6E67', '#B23A2E'],
         borderWidth: 0
       }
     ]
@@ -158,20 +152,20 @@ const Usage = () => {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Usage Analytics</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">Monitor document API query metrics in real-time.</p>
+          <h1 className="text-3xl font-display font-semibold text-[var(--ink)]">Usage & Registry Audit</h1>
+          <p className="text-sm text-[var(--ink-muted)] mt-1 font-medium">Monitor document API query metrics in real-time.</p>
         </div>
 
         {/* Time filters switch */}
-        <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200/40 dark:border-slate-800/60">
+        <div className="flex items-center p-1 rounded border border-[var(--border)] bg-[var(--surface-sunken)]">
           {['7d', '30d', '90d'].map((range) => (
             <button
               key={range}
               onClick={() => setTimeRange(range)}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+              className={`px-3 py-1 rounded text-xs font-mono font-bold uppercase transition-all cursor-pointer ${
                 timeRange === range
-                  ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-white'
-                  : 'text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                  ? 'bg-[var(--surface)] text-[var(--accent-teal)] shadow-sm'
+                  : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
               }`}
             >
               {range}
@@ -180,65 +174,85 @@ const Usage = () => {
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards with Fraunces Numerals */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Total API Calls */}
-        <div className="card-premium p-6 flex items-center justify-between">
+        <div className="card p-6 flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Total API Calls</p>
-            <p className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">Total API Calls</p>
+            <p className="text-3xl font-display font-semibold text-[var(--ink)]">
               {analytics.totalApiCalls}
             </p>
           </div>
-          <div className="p-3.5 rounded-xl bg-blue-50 dark:bg-blue-950/45 text-blue-600 dark:text-blue-400">
+          <div className="p-3.5 rounded-full border border-[var(--border)] bg-[var(--surface-sunken)] text-[var(--accent-teal)]">
             <ChartBarIcon className="h-6 w-6" />
           </div>
         </div>
 
-        {/* Success Rate */}
-        <div className="card-premium p-6 flex items-center justify-between">
+        <div className="card p-6 flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Success Rate</p>
-            <p className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">Success Rate</p>
+            <p className="text-3xl font-display font-semibold text-[var(--ink)]">
               {analytics.successRate}%
             </p>
           </div>
-          <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/45 text-emerald-600 dark:text-emerald-400">
+          <div className="p-3.5 rounded-full border border-[var(--border)] bg-[var(--surface-sunken)] text-[var(--accent-teal)]">
             <ArrowTrendingUpIcon className="h-6 w-6" />
           </div>
         </div>
 
-        {/* Average Latency */}
-        <div className="card-premium p-6 flex items-center justify-between">
+        <div className="card p-6 flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Avg Latency</p>
-            <p className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">Avg Latency</p>
+            <p className="text-3xl font-display font-semibold text-[var(--ink)]">
               {analytics.averageLatency}ms
             </p>
           </div>
-          <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/45 text-amber-600 dark:text-amber-400">
+          <div className="p-3.5 rounded-full border border-[var(--border)] bg-[var(--surface-sunken)] text-[var(--accent-ochre)]">
             <ClockIcon className="h-6 w-6" />
           </div>
         </div>
 
-        {/* Error Rate */}
-        <div className="card-premium p-6 flex items-center justify-between">
+        <div className="card p-6 flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Error Rate</p>
-            <p className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">Error Rate</p>
+            <p className="text-3xl font-display font-semibold text-[var(--ink)]">
               {Math.max(0, 100 - analytics.successRate)}%
             </p>
           </div>
-          <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/45 text-rose-600 dark:text-rose-400">
+          <div className="p-3.5 rounded-full border border-[var(--border)] bg-[var(--surface-sunken)] text-[var(--accent-red)]">
             <ArrowTrendingDownIcon className="h-6 w-6" />
           </div>
         </div>
       </div>
 
+      {/* Endpoint Distribution Table */}
+      <div className="card-static p-6">
+        <h2 className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider mb-4">Endpoint Query Distribution</h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead>
+              <tr>
+                <th scope="col" className="table-header-premium">Endpoint</th>
+                <th scope="col" className="table-header-premium text-right">Request Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              {analytics.requestsPerDocument.labels.map((label, idx) => (
+                <tr key={label} className="table-row-premium">
+                  <td className="px-6 py-3 font-mono text-xs text-[var(--ink)]">{label}</td>
+                  <td className="px-6 py-3 font-mono text-xs text-[var(--ink-muted)] text-right font-bold">
+                    {analytics.requestsPerDocument.data[idx]}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* API Calls Over Time */}
-        <div className="card-premium-no-hover p-6">
+        <div className="card-static p-6">
           <div className="h-80 relative">
             <Line
               data={apiCallsChartData}
@@ -247,8 +261,7 @@ const Usage = () => {
           </div>
         </div>
 
-        {/* Requests Per Document */}
-        <div className="card-premium-no-hover p-6">
+        <div className="card-static p-6">
           <div className="h-80 relative">
             <Bar
               data={requestsPerDocChartData}
@@ -257,8 +270,7 @@ const Usage = () => {
           </div>
         </div>
 
-        {/* Error vs Success */}
-        <div className="card-premium-no-hover p-6 lg:col-span-2">
+        <div className="card-static p-6 lg:col-span-2">
           <div className="h-80 relative max-w-md mx-auto">
             <Doughnut
               data={errorSuccessChartData}
@@ -270,8 +282,8 @@ const Usage = () => {
                   legend: {
                     position: 'bottom',
                     labels: {
-                      color: theme === 'dark' ? '#9ca3af' : '#475569',
-                      font: { family: 'Plus Jakarta Sans', weight: '600' }
+                      color: theme === 'dark' ? '#93A0AC' : '#5B6A78',
+                      font: { family: 'IBM Plex Sans', weight: '600' }
                     }
                   }
                 }

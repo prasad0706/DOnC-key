@@ -97,6 +97,16 @@ export const getDocumentDetail = async (documentId) => {
   }
 };
 
+export const deleteDocument = async (id) => {
+  try {
+    const response = await api.delete(`/documents/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Delete document error:', error);
+    throw error;
+  }
+};
+
 // API Key API
 export const generateApiKey = async (documentId) => {
   try {

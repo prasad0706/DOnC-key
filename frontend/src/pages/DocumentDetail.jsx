@@ -4,9 +4,6 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { 
   DocumentTextIcon, 
-  ClockIcon, 
-  CheckCircleIcon, 
-  XCircleIcon, 
   KeyIcon, 
   ArrowLeftIcon, 
   TableCellsIcon, 
@@ -22,6 +19,8 @@ import TryApiTab from '../components/TryApiTab';
 import ChatTab from '../components/ChatTab';
 import WebhookSettingsTab from '../components/WebhookSettingsTab';
 import ApiLogsTab from '../components/ApiLogsTab';
+import StatusStamp from '../components/StatusStamp';
+import DotLeaderRow from '../components/DotLeaderRow';
 
 const DocumentDetail = () => {
   const { id } = useParams();
@@ -30,7 +29,7 @@ const DocumentDetail = () => {
   const [document, setDocument] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('structure');
   const [generatedKey, setGeneratedKey] = useState(null);
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [apiKeys, setApiKeys] = useState([]);
@@ -52,7 +51,6 @@ const DocumentDetail = () => {
     fetchDocument();
   }, [id]);
 
-  // Fetch API keys when the API Keys tab is activated
   useEffect(() => {
     if (activeTab === 'api-integration' && id) {
       const fetchKeys = async () => {
@@ -68,6 +66,16 @@ const DocumentDetail = () => {
       fetchKeys();
     }
   }, [activeTab, id]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && showKeyModal) {
+        setShowKeyModal(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showKeyModal]);
 
   const handleGenerateApiKey = async () => {
     try {
@@ -93,56 +101,11 @@ const DocumentDetail = () => {
     }
   };
 
-  const getStatusBadgeClass = (status) => {
-    switch (status) {
-      case 'ready':
-        return 'badge-status-ready';
-      case 'processing':
-        return 'badge-status-processing';
-      case 'queued':
-        return 'badge-status-queued';
-      case 'failed':
-        return 'badge-status-failed';
-      default:
-        return 'badge-premium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'ready':
-        return <CheckCircleIcon className="h-4 w-4 mr-1.5" />;
-      case 'processing':
-        return <ClockIcon className="h-4 w-4 mr-1.5 animate-pulse" />;
-      case 'queued':
-        return <ClockIcon className="h-4 w-4 mr-1.5" />;
-      case 'failed':
-        return <XCircleIcon className="h-4 w-4 mr-1.5" />;
-      default:
-        return <DocumentTextIcon className="h-4 w-4 mr-1.5" />;
-    }
-  };
-
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'ready':
-        return 'Ready';
-      case 'processing':
-        return 'Processing';
-      case 'queued':
-        return 'Queued';
-      case 'failed':
-        return 'Failed';
-      default:
-        return 'Unknown';
-    }
-  };
-
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
-      month: 'long',
+      month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
@@ -153,7 +116,7 @@ const DocumentDetail = () => {
     return (
       <div className="p-6">
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-10 w-10 border-2 border-[var(--border)] border-t-[var(--accent-teal)]"></div>
         </div>
       </div>
     );
@@ -162,7 +125,7 @@ const DocumentDetail = () => {
   if (error) {
     return (
       <div className="p-6">
-        <div className="p-4 rounded-xl border bg-rose-50 text-rose-700 border-rose-200/50 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20">
+        <div className="p-4 rounded border bg-red-500/10 text-[var(--accent-red)] border-red-500/20">
           {error}
         </div>
       </div>
@@ -172,10 +135,10 @@ const DocumentDetail = () => {
   if (!document) {
     return (
       <div className="p-6">
-        <div className="card-premium-no-hover p-12 text-center flex flex-col items-center justify-center">
-          <DocumentTextIcon className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-          <h2 className="text-lg font-bold mb-2 text-slate-900 dark:text-white">Document not found</h2>
-          <p className="text-slate-500 dark:text-slate-400">The requested document does not exist.</p>
+        <div className="card-static p-12 text-center flex flex-col items-center justify-center">
+          <DocumentTextIcon className="h-12 w-12 mx-auto mb-4 text-[var(--ink-muted)]" />
+          <h2 className="text-lg font-display font-semibold mb-2 text-[var(--ink)]">Record Not Found</h2>
+          <p className="text-[var(--ink-muted)] text-sm">The requested document file does not exist in registry.</p>
         </div>
       </div>
     );
@@ -183,49 +146,55 @@ const DocumentDetail = () => {
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
-      {/* Back button */}
-      <button
-        onClick={() => navigate(-1)}
-        className="btn-secondary"
-      >
-        <ArrowLeftIcon className="h-4 w-4 mr-1.5" />
-        Back
-      </button>
+      {/* Breadcrumb Command Bar */}
+      <div className="flex items-center justify-between text-xs font-mono text-[var(--ink-muted)] pb-2 border-b border-[var(--border)]">
+        <div className="flex items-center space-x-2">
+          <Link to="/documents" className="hover:text-[var(--accent-teal)] transition-colors">
+            DOCUMENTS
+          </Link>
+          <span>/</span>
+          <span className="text-[var(--ink)] font-semibold truncate max-w-md">{document.name}</span>
+        </div>
+        <button
+          onClick={() => navigate('/documents')}
+          className="btn-secondary py-1 px-3 text-xs"
+        >
+          <ArrowLeftIcon className="h-3.5 w-3.5 mr-1 inline" />
+          Registry Index
+        </button>
+      </div>
 
-      {/* Document Header Card */}
-      <div className="card-premium-no-hover p-6">
+      {/* Document Case Header Card */}
+      <div className="card-static p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center space-x-4">
-            <div className="p-3.5 rounded-xl bg-blue-50 dark:bg-blue-950/45 text-blue-600 dark:text-blue-400">
+            <div className="p-3 rounded border border-[var(--border)] bg-[var(--surface-sunken)] text-[var(--accent-teal)]">
               <DocumentTextIcon className="h-7 w-7" />
             </div>
             <div>
-              <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">{document.name}</h1>
-              <div className="flex items-center mt-2">
-                <span className={getStatusBadgeClass(document.status)}>
-                  {getStatusIcon(document.status)}
-                  {getStatusText(document.status)}
-                </span>
+              <h1 className="text-2xl font-display font-semibold text-[var(--ink)] leading-tight">{document.name}</h1>
+              <div className="mt-2">
+                <StatusStamp status={document.status} />
               </div>
             </div>
           </div>
-          <div className="text-left sm:text-right text-xs font-semibold text-slate-400 dark:text-slate-500 space-y-1">
-            <p>Uploaded: {formatDate(document.uploadedAt)}</p>
-            <p>Size: {document.size}</p>
+          <div className="text-left sm:text-right font-mono text-xs text-[var(--ink-muted)] space-y-1">
+            <p>INTAKE: {formatDate(document.uploadedAt)}</p>
+            <p>PAYLOAD SIZE: {document.size}</p>
           </div>
         </div>
       </div>
 
-      {/* Modern Tabs Bar */}
-      <div className="border-b border-slate-200 dark:border-slate-800/80">
-        <nav className="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
+      {/* Case File Folder Tab Navigation Bar */}
+      <div className="border-b border-[var(--border)]">
+        <nav className="flex space-x-1 overflow-x-auto" aria-label="Tabs">
           {[
+            { id: 'structure', name: 'Structure Data', icon: TableCellsIcon },
             { id: 'overview', name: 'Overview', icon: DocumentTextIcon },
-            { id: 'structure', name: 'Structure', icon: TableCellsIcon },
             { id: 'api-integration', name: 'API Integration', icon: KeyIcon },
             { id: 'chat', name: 'AI Chat', icon: ChatBubbleLeftRightIcon },
-            { id: 'webhooks', name: 'Webhooks Settings', icon: LinkIcon },
-            { id: 'logs', name: 'Request Logs', icon: QueueListIcon },
+            { id: 'webhooks', name: 'Webhooks', icon: LinkIcon },
+            { id: 'logs', name: 'API Logs', icon: QueueListIcon },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -233,12 +202,10 @@ const DocumentDetail = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`py-4 px-1 border-b-2 font-semibold text-sm flex items-center gap-2 transition-all duration-200 cursor-pointer ${
-                  isActive ? 'tab-button-active' : 'tab-button-inactive'
-                }`}
+                className={`folder-tab ${isActive ? 'active' : ''}`}
               >
-                <Icon className="h-4.5 w-4.5" />
-                {tab.name}
+                <Icon className="h-4 w-4" />
+                <span>{tab.name}</span>
               </button>
             );
           })}
@@ -248,41 +215,19 @@ const DocumentDetail = () => {
       {/* Tab Content */}
       <div className="space-y-6">
         {activeTab === 'overview' && (
-          <div className="card-premium-no-hover p-6 md:p-8 space-y-6">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Document Details</h2>
+          <div className="card-static p-6 md:p-8 space-y-6">
+            <h2 className="text-xl font-display font-semibold text-[var(--ink)]">Record Metadata Overview</h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 text-sm">
-              <div className="space-y-1.5">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Pipeline Status</p>
-                <p className={`font-bold ${document.status === 'ready' ? 'text-green-500' : document.status === 'failed' ? 'text-red-500' : 'text-amber-500'}`}>
-                  {getStatusText(document.status)}
-                </p>
-              </div>
-
-              <div className="space-y-1.5">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Upload Date</p>
-                <p className="font-bold text-slate-800 dark:text-slate-200">
-                  {formatDate(document.uploadedAt)}
-                </p>
-              </div>
-
-              <div className="space-y-1.5">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">File Payload Size</p>
-                <p className="font-bold text-slate-800 dark:text-slate-200">
-                  {document.size}
-                </p>
-              </div>
-
-              <div className="space-y-1.5">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Format</p>
-                <p className="font-bold text-slate-800 dark:text-slate-200 uppercase">
-                  {document.fileType || 'Unknown'}
-                </p>
-              </div>
+            <div className="max-w-xl space-y-2 border-t border-[var(--border)] pt-4">
+              <DotLeaderRow label="pipeline_status" value={document.status?.toUpperCase()} />
+              <DotLeaderRow label="intake_timestamp" value={formatDate(document.uploadedAt)} />
+              <DotLeaderRow label="file_size" value={document.size} />
+              <DotLeaderRow label="file_format" value={(document.fileType || 'pdf').toUpperCase()} />
+              <DotLeaderRow label="document_id" value={document.id || document._id} />
             </div>
 
             {document.status === 'ready' && (
-              <div className="pt-6 border-t border-slate-100 dark:border-slate-800/60">
+              <div className="pt-4 border-t border-[var(--border)]">
                 <button
                   onClick={() => setActiveTab('api-integration')}
                   className="btn-primary"
@@ -302,11 +247,11 @@ const DocumentDetail = () => {
         {activeTab === 'api-integration' && (
           <div className="space-y-8">
             {/* API Keys Table Card */}
-            <div className="card-premium-no-hover p-6">
+            <div className="card-static p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">API Credentials</h2>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Generate keys to query structured outputs externally.</p>
+                  <h2 className="text-xl font-display font-semibold text-[var(--ink)]">API Key Credentials</h2>
+                  <p className="text-xs text-[var(--ink-muted)] mt-1 font-medium">Generate timing-safe API keys for external endpoints.</p>
                 </div>
                 {document.status === 'ready' && (
                   <button
@@ -320,48 +265,42 @@ const DocumentDetail = () => {
               </div>
 
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-100 dark:divide-slate-800/40">
+                <table className="min-w-full">
                   <thead>
                     <tr>
-                      <th scope="col" className="table-header-premium">Key prefix</th>
-                      <th scope="col" className="table-header-premium">Status</th>
+                      <th scope="col" className="table-header-premium">Key Prefix</th>
+                      <th scope="col" className="table-header-premium">Status Stamp</th>
                       <th scope="col" className="table-header-premium">Created</th>
                       <th scope="col" className="table-header-premium text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/40">
+                  <tbody>
                     {apiKeysLoading ? (
                       <tr>
-                        <td colSpan="4" className="px-6 py-6 text-center text-xs font-semibold text-slate-500 dark:text-slate-400">
+                        <td colSpan="4" className="px-6 py-6 text-center text-xs font-mono text-[var(--ink-muted)]">
                           <div className="flex justify-center items-center gap-2">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-                            <span>Fetching access profile...</span>
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-[var(--border)] border-t-[var(--accent-teal)]"></div>
+                            <span>Fetching credentials...</span>
                           </div>
                         </td>
                       </tr>
                     ) : apiKeys && apiKeys.length > 0 ? (
                       apiKeys.map((key) => (
                         <tr key={key.id || key._id} className="table-row-premium">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-slate-900 dark:text-slate-200">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-[var(--ink)]">
                             {key.keyPrefix ? `${key.keyPrefix}...` : 'N/A'}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`badge-premium ${
-                              key.revoked
-                                ? 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border border-rose-200/50 dark:border-rose-500/20'
-                                : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-500/20'
-                            }`}>
-                              {key.revoked ? 'Revoked' : 'Active'}
-                            </span>
+                            <StatusStamp status={key.revoked ? 'failed' : 'ready'} label={key.revoked ? 'REVOKED' : 'ACTIVE'} />
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-xs font-medium text-slate-500 dark:text-slate-400">
+                          <td className="px-6 py-4 whitespace-nowrap text-xs font-mono text-[var(--ink-muted)]">
                             {key.createdAt ? formatDate(key.createdAt) : 'Just now'}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right">
                             {!key.revoked && (
                               <button
                                 onClick={() => handleRevokeApiKey(key.id || key._id)}
-                                className="btn-danger p-1 text-xs px-3.5"
+                                className="btn-danger p-1 text-xs px-3"
                               >
                                 Revoke
                               </button>
@@ -371,8 +310,8 @@ const DocumentDetail = () => {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="4" className="px-6 py-8 text-center text-xs font-semibold text-slate-500 dark:text-slate-400">
-                          No external keys configured yet.
+                        <td colSpan="4" className="px-6 py-8 text-center text-xs font-mono text-[var(--ink-muted)]">
+                          No external keys configured yet for this document file.
                         </td>
                       </tr>
                     )}
@@ -406,23 +345,29 @@ const DocumentDetail = () => {
 
       {/* Generated Key Modal Portal */}
       {showKeyModal && generatedKey && createPortal(
-        <div className="backdrop-glass">
-          <div className="modal-theme" onClick={e => e.stopPropagation()}>
+        <div className="backdrop-glass" onClick={() => setShowKeyModal(false)}>
+          <div
+            className="modal-theme"
+            role="dialog"
+            aria-modal="true"
+            onClick={e => e.stopPropagation()}
+          >
             <div className="flex justify-between items-start mb-4">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white">API Key Generated</h2>
+              <h2 className="text-xl font-display font-semibold text-[var(--ink)]">API Key Issued</h2>
               <button
                 onClick={() => setShowKeyModal(false)}
-                className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/80 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                className="p-1 rounded text-[var(--ink-muted)] hover:text-[var(--ink)]"
               >
                 <XMarkIcon className="h-5 w-5" />
               </button>
             </div>
 
             <div className="space-y-4">
-              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
-                Here is your secret document API key. Save it now as it will not be shown again.
+              <p className="text-sm text-[var(--ink-muted)] leading-relaxed font-medium">
+                Tear off this secret document API key slip and store it in your environment variables. It will not be shown again.
               </p>
-              <div className="p-4 bg-slate-900 dark:bg-slate-950 rounded-xl border border-slate-800 text-xs font-mono text-emerald-400 break-all leading-normal">
+              {/* Perforated tear-off slip border */}
+              <div className="p-4 bg-[var(--surface-sunken)] rounded border-2 border-dashed border-[var(--border)] text-xs font-mono text-[var(--accent-teal)] font-bold break-all leading-normal">
                 {generatedKey.apiKey || generatedKey.key}
               </div>
             </div>
@@ -434,7 +379,7 @@ const DocumentDetail = () => {
                 }}
                 className="flex-1 btn-primary"
               >
-                Copy to Clipboard
+                Copy Key Slip
               </button>
               <button
                 onClick={() => setShowKeyModal(false)}

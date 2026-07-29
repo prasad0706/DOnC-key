@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
-import { DocumentTextIcon, ClockIcon, CheckCircleIcon, XCircleIcon, ArrowTopRightOnSquareIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { DocumentTextIcon, ArrowTopRightOnSquareIcon, MagnifyingGlassIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
-import { getDocuments, searchDocuments } from '../utils/api';
+import { getDocuments, searchDocuments, deleteDocument } from '../utils/api';
+import StatusStamp from '../components/StatusStamp';
 
 const Documents = () => {
   const { theme } = useTheme();
@@ -15,63 +16,30 @@ const Documents = () => {
   const [searchType, setSearchType] = useState('text'); // 'text' or 'semantic'
 
   useEffect(() => {
-    const fetchDocuments = async () => {
-      try {
-        const data = await getDocuments();
-        setDocuments(data);
-        setLoading(false);
-      } catch (err) {
-        setError('Failed to fetch documents');
-        setLoading(false);
-        console.error('Error fetching documents:', err);
-      }
-    };
-
     fetchDocuments();
   }, []);
 
-  const getStatusBadgeClass = (status) => {
-    switch (status) {
-      case 'ready':
-        return 'badge-status-ready';
-      case 'processing':
-        return 'badge-status-processing';
-      case 'queued':
-        return 'badge-status-queued';
-      case 'failed':
-        return 'badge-status-failed';
-      default:
-        return 'badge-premium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+  const fetchDocuments = async () => {
+    try {
+      setLoading(true);
+      const data = await getDocuments();
+      setDocuments(data);
+      setLoading(false);
+    } catch (err) {
+      setError('Failed to fetch document intake records');
+      setLoading(false);
+      console.error('Error fetching documents:', err);
     }
   };
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'ready':
-        return <CheckCircleIcon className="h-4 w-4 mr-1.5" />;
-      case 'processing':
-        return <ClockIcon className="h-4 w-4 mr-1.5" />;
-      case 'queued':
-        return <ClockIcon className="h-4 w-4 mr-1.5" />;
-      case 'failed':
-        return <XCircleIcon className="h-4 w-4 mr-1.5" />;
-      default:
-        return <DocumentTextIcon className="h-4 w-4 mr-1.5" />;
-    }
-  };
-
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'ready':
-        return 'Ready';
-      case 'processing':
-        return 'Processing';
-      case 'queued':
-        return 'Queued';
-      case 'failed':
-        return 'Failed';
-      default:
-        return 'Unknown';
+  const handleDelete = async (docId) => {
+    if (!window.confirm('Are you sure you want to delete this document intake record?')) return;
+    try {
+      await deleteDocument(docId);
+      setDocuments(prev => prev.filter(d => d.id !== docId));
+    } catch (err) {
+      console.error('Failed to delete document:', err);
+      alert('Failed to delete document');
     }
   };
 
@@ -89,9 +57,9 @@ const Documents = () => {
   if (loading) {
     return (
       <div className="p-6">
-        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-6">Documents</h1>
+        <h1 className="text-3xl font-display font-semibold text-[var(--ink)] mb-6">Document Registry</h1>
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-10 w-10 border-2 border-[var(--border)] border-t-[var(--accent-teal)]"></div>
         </div>
       </div>
     );
@@ -100,8 +68,8 @@ const Documents = () => {
   if (error) {
     return (
       <div className="p-6">
-        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-6">Documents</h1>
-        <div className="p-4 rounded-xl border bg-rose-50 text-rose-700 border-rose-200/50 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20">
+        <h1 className="text-3xl font-display font-semibold text-[var(--ink)] mb-6">Document Registry</h1>
+        <div className="p-4 rounded border bg-red-500/10 text-[var(--accent-red)] border-red-500/20">
           {error}
         </div>
       </div>
@@ -113,22 +81,22 @@ const Documents = () => {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Documents</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">Manage and query your structured documents.</p>
+          <h1 className="text-3xl font-display font-semibold tracking-tight text-[var(--ink)]">Document Registry</h1>
+          <p className="text-sm text-[var(--ink-muted)] mt-1 font-medium">Manage and query your structured record documents.</p>
         </div>
         <Link
-          to="/documents/upload"
+          to="/dashboard"
           className="btn-primary"
         >
           <DocumentTextIcon className="h-5 w-5 mr-2" />
-          Upload Document
+          Intake Document
         </Link>
       </div>
 
       {/* Search Bar & Mode Selector */}
       <div className="space-y-3">
         <div className="relative">
-          <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 dark:text-slate-500" />
+          <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--ink-muted)]" />
           <input
             type="text"
             value={searchQuery}
@@ -145,13 +113,13 @@ const Documents = () => {
                 setIsSearching(false);
               }
             }}
-            placeholder="Search documents by content... (press Enter)"
-            className="input-premium pl-12 pr-12 py-3.5 focus:ring-4 focus:ring-blue-500/10"
+            placeholder="Search document registry... (press Enter)"
+            className="input pl-12 pr-12 py-3"
           />
           {searchQuery && (
             <button
               onClick={() => { setSearchQuery(''); setSearchResults(null); }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-200"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-[var(--ink-muted)] hover:text-[var(--ink)]"
             >
               Clear
             </button>
@@ -160,58 +128,58 @@ const Documents = () => {
 
         {/* Search Type Button Group */}
         <div className="flex items-center space-x-2">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mr-2">Search Mode:</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--ink-muted)] mr-2">Search Mode:</span>
           <button
             onClick={() => setSearchType('text')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+            className={`px-3 py-1 rounded text-xs font-semibold border transition-all ${
               searchType === 'text'
-                ? 'bg-blue-600 border-blue-600 text-white shadow shadow-blue-500/20'
-                : 'bg-white border-slate-200 text-slate-600 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-400'
+                ? 'bg-[var(--accent-teal)] border-[var(--accent-teal)] text-white'
+                : 'bg-[var(--surface)] border-[var(--border)] text-[var(--ink-muted)]'
             }`}
           >
             Full-Text Keywords
           </button>
           <button
             onClick={() => setSearchType('semantic')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+            className={`px-3 py-1 rounded text-xs font-semibold border transition-all ${
               searchType === 'semantic'
-                ? 'bg-blue-600 border-blue-600 text-white shadow shadow-blue-500/20'
-                : 'bg-white border-slate-200 text-slate-600 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-400'
+                ? 'bg-[var(--accent-teal)] border-[var(--accent-teal)] text-white'
+                : 'bg-[var(--surface)] border-[var(--border)] text-[var(--ink-muted)]'
             }`}
           >
-            Semantic AI Vector
+            Semantic Vector
           </button>
         </div>
       </div>
 
       {isSearching && (
-        <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 animate-pulse">Searching content databases...</p>
+        <p className="text-xs font-mono text-[var(--accent-teal)] animate-pulse">Searching vector catalog...</p>
       )}
 
       {searchResults && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Found {searchResults.total} result{searchResults.total !== 1 ? 's' : ''} for "{searchResults.query}"
+            <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">
+              Found {searchResults.total} record{searchResults.total !== 1 ? 's' : ''} for "{searchResults.query}"
             </p>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400 border border-blue-100 dark:border-blue-900/35 uppercase">
-              {searchResults.searchMethod === 'semantic' ? 'Semantic AI Match' : 'Full-Text Match'}
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[var(--surface-sunken)] text-[var(--accent-teal)] border border-[var(--border)] uppercase">
+              {searchResults.searchMethod === 'semantic' ? 'Semantic Match' : 'Keyword Match'}
             </span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {searchResults.results.map((r) => (
               <Link key={r.documentId} to={`/documents/${r.documentId}`}
-                className="card-premium block p-5"
+                className="card block p-5"
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-sm text-slate-900 dark:text-white truncate max-w-[70%]">{r.fileName}</span>
+                  <span className="font-bold text-sm text-[var(--ink)] truncate max-w-[70%]">{r.fileName}</span>
                   {r.category && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400 border border-blue-100 dark:border-blue-900/30 uppercase tracking-wider">
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded border border-[var(--border)] bg-[var(--surface-sunken)] text-[var(--accent-teal)] uppercase">
                       {r.category}
                     </span>
                   )}
                 </div>
-                <p className="text-xs mt-2.5 text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">{r.summary}</p>
+                <p className="text-xs mt-2.5 text-[var(--ink-muted)] line-clamp-2 leading-relaxed">{r.summary}</p>
               </Link>
             ))}
           </div>
@@ -220,66 +188,70 @@ const Documents = () => {
 
       {/* Documents Table */}
       {documents.length === 0 ? (
-        <div className="card-premium-no-hover p-12 text-center flex flex-col items-center justify-center">
-          <DocumentTextIcon className="h-12 w-12 mx-auto mb-4 text-slate-500 dark:text-slate-400" />
-          <h2 className="text-lg font-bold mb-2 text-slate-900 dark:text-white">No documents found</h2>
-          <p className="text-slate-500 dark:text-slate-400 max-w-sm mb-6">Upload your first document to get started structuring data.</p>
-          <Link to="/documents/upload" className="btn-secondary">
-            Upload File
+        <div className="card-static p-12 text-center flex flex-col items-center justify-center">
+          <DocumentTextIcon className="h-12 w-12 mx-auto mb-4 text-[var(--ink-muted)]" />
+          <h2 className="text-lg font-display font-semibold mb-2 text-[var(--ink)]">No record documents found</h2>
+          <p className="text-[var(--ink-muted)] max-w-sm mb-6 text-sm">Upload your first document to begin registry intake.</p>
+          <Link to="/dashboard" className="btn-secondary">
+            Intake File
           </Link>
         </div>
       ) : (
-        <div className="card-premium-no-hover overflow-hidden border border-slate-100 dark:border-slate-800/40">
+        <div className="card-static overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-100 dark:divide-slate-800/40">
+            <table className="min-w-full">
               <thead>
                 <tr>
                   <th scope="col" className="table-header-premium">
-                    Document Name
+                    Document File
                   </th>
                   <th scope="col" className="table-header-premium">
-                    Status
+                    Ink Status Stamp
                   </th>
                   <th scope="col" className="table-header-premium">
-                    Uploaded
+                    Intake Date
                   </th>
                   <th scope="col" className="table-header-premium">
-                    Size
+                    File Size
                   </th>
                   <th scope="col" className="table-header-premium text-right">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/40">
+              <tbody>
                 {documents.map((doc) => (
                   <tr key={doc.id} className="table-row-premium">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <DocumentTextIcon className="h-5 w-5 text-blue-500 mr-3 flex-shrink-0" />
-                        <span className="text-sm font-semibold text-slate-900 dark:text-white truncate max-w-xs">{doc.name}</span>
+                        <DocumentTextIcon className="h-5 w-5 text-[var(--accent-teal)] mr-3 flex-shrink-0" />
+                        <span className="text-sm font-semibold text-[var(--ink)] truncate max-w-xs">{doc.name}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={getStatusBadgeClass(doc.status)}>
-                        {getStatusIcon(doc.status)}
-                        {getStatusText(doc.status)}
-                      </span>
+                      <StatusStamp status={doc.status} />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-xs font-medium text-slate-500 dark:text-slate-400">{formatDate(doc.uploadedAt)}</span>
+                    <td className="px-6 py-4 whitespace-nowrap font-mono text-xs text-[var(--ink-muted)]">
+                      {formatDate(doc.uploadedAt)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{doc.size}</span>
+                    <td className="px-6 py-4 whitespace-nowrap font-mono text-xs text-[var(--ink-muted)]">
+                      {doc.size}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                       <Link
                         to={`/documents/${doc.id}`}
-                        className="btn-primary py-1.5 px-3.5 text-xs shadow-none hover:shadow-none"
+                        className="btn-secondary py-1 px-3 text-xs"
                       >
-                        <ArrowTopRightOnSquareIcon className="h-4 w-4 mr-1" />
-                        Open
+                        <ArrowTopRightOnSquareIcon className="h-4 w-4 mr-1 inline" />
+                        Inspect
                       </Link>
+                      <button
+                        onClick={() => handleDelete(doc.id)}
+                        className="btn-danger p-1.5"
+                        title="Delete Document"
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                      </button>
                     </td>
                   </tr>
                 ))}

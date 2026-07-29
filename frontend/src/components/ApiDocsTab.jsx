@@ -17,78 +17,78 @@ const ApiDocsTab = ({ documentId }) => {
   return (
     <div className="space-y-6">
       {/* Base URL Section */}
-      <div className="card-premium-no-hover p-6 space-y-4">
+      <div className="card-static p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-md font-bold text-slate-900 dark:text-white uppercase tracking-wider text-xs">Base URL</h2>
+          <h2 className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider">Base URL</h2>
           <button
             onClick={() => copyToClipboard(baseUrl, 'base')}
-            className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
+            className="p-2 rounded border border-[var(--border)] text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface-sunken)] transition-colors"
             title="Copy to clipboard"
           >
             {copiedSection === 'base' ? (
-              <CheckIcon className="h-4 w-4 text-emerald-500 animate-scale" />
+              <CheckIcon className="h-4 w-4 text-[var(--accent-teal)]" />
             ) : (
               <ClipboardIcon className="h-4 w-4" />
             )}
           </button>
         </div>
 
-        <div className="p-4 bg-slate-900 dark:bg-slate-950 rounded-xl border border-slate-800 text-xs font-mono text-blue-400 break-all leading-normal">
+        <div className="p-4 bg-[var(--surface-sunken)] rounded border border-[var(--border)] text-xs font-mono text-[var(--accent-teal)] font-bold break-all">
           {baseUrl}
         </div>
 
-        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-          All document API endpoints are relative to this base URL.
+        <p className="text-xs text-[var(--ink-muted)] font-medium">
+          All document endpoints are relative to this base URL.
         </p>
       </div>
 
       {/* Authentication Section */}
-      <div className="card-premium-no-hover p-6 space-y-4">
-        <h2 className="text-md font-bold text-slate-900 dark:text-white uppercase tracking-wider text-xs">Authentication</h2>
+      <div className="card-static p-6 space-y-4">
+        <h2 className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider">Authentication Header</h2>
 
-        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
-          Authenticate requests by supplying your document API key in the custom <code>x-api-key</code> request header:
+        <p className="text-xs text-[var(--ink-muted)] font-medium leading-relaxed">
+          Supply your document API key in the custom <code>x-api-key</code> request header:
         </p>
 
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Header Parameter</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--ink-muted)]">Header Parameter</span>
           <button
-            onClick={() => copyToClipboard('x-api-key: your_document_api_key', 'auth')}
-            className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
+            onClick={() => copyToClipboard('x-api-key: doc_xxxx...', 'auth')}
+            className="p-2 rounded border border-[var(--border)] text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface-sunken)] transition-colors"
             title="Copy to clipboard"
           >
             {copiedSection === 'auth' ? (
-              <CheckIcon className="h-4 w-4 text-emerald-500 animate-scale" />
+              <CheckIcon className="h-4 w-4 text-[var(--accent-teal)]" />
             ) : (
               <ClipboardIcon className="h-4 w-4" />
             )}
           </button>
         </div>
 
-        <div className="p-4 bg-slate-900 dark:bg-slate-950 rounded-xl border border-slate-800 text-xs font-mono text-blue-400 break-all leading-normal">
+        <div className="p-4 bg-[var(--surface-sunken)] rounded border border-[var(--border)] text-xs font-mono text-[var(--accent-teal)] font-bold break-all">
           x-api-key: YOUR_DOCUMENT_API_KEY
         </div>
       </div>
 
       {/* Endpoints Section */}
-      <div className="card-premium-no-hover p-6 space-y-6">
-        <h2 className="text-md font-bold text-slate-900 dark:text-white uppercase tracking-wider text-xs">Endpoints</h2>
+      <div className="card-static p-6 space-y-6">
+        <h2 className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider">Extraction Endpoints</h2>
 
         <div className="space-y-4">
           <div className="flex items-center space-x-2.5">
-            <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-500/20 text-[10px] font-bold rounded uppercase tracking-wider">
+            <span className="px-2 py-0.5 bg-[var(--accent-teal)] text-white text-[10px] font-bold font-mono rounded uppercase">
               GET
             </span>
-            <span className="font-mono text-sm font-bold text-slate-900 dark:text-white">/data</span>
+            <span className="font-mono text-sm font-bold text-[var(--ink)]">/data</span>
           </div>
 
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+          <p className="text-xs text-[var(--ink-muted)] font-medium leading-relaxed">
             Retrieve parsed metadata, entities, sentiments, and key-points from the structured document.
           </p>
 
           <div className="space-y-2.5">
-            <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Response payload schema</h4>
-            <div className="p-4 bg-slate-900 dark:bg-slate-950 rounded-xl border border-slate-800 text-xs font-mono text-slate-300 overflow-x-auto whitespace-pre">
+            <h4 className="text-[10px] font-bold uppercase tracking-wider text-[var(--ink-muted)]">Response payload schema</h4>
+            <div className="p-4 bg-[var(--surface-sunken)] rounded border border-[var(--border)] text-xs font-mono text-[var(--ink)] overflow-x-auto whitespace-pre">
 {`{
   "documentId": "string",
   "data": {
@@ -104,20 +104,20 @@ const ApiDocsTab = ({ documentId }) => {
 
           <div className="space-y-2.5">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">cURL Example</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--ink-muted)]">cURL Example</span>
               <button
                 onClick={() => copyToClipboard(`curl -X GET ${baseUrl}/data \\\n  -H "x-api-key: YOUR_API_KEY"`, 'curl')}
-                className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
+                className="p-2 rounded border border-[var(--border)] text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface-sunken)] transition-colors"
                 title="Copy to clipboard"
               >
                 {copiedSection === 'curl' ? (
-                  <CheckIcon className="h-4 w-4 text-emerald-500 animate-scale" />
+                  <CheckIcon className="h-4 w-4 text-[var(--accent-teal)]" />
                 ) : (
                   <ClipboardIcon className="h-4 w-4" />
                 )}
               </button>
             </div>
-            <div className="p-4 bg-slate-900 dark:bg-slate-950 rounded-xl border border-slate-800 text-xs font-mono text-blue-400 overflow-x-auto whitespace-pre leading-normal">
+            <div className="p-4 bg-[var(--surface-sunken)] rounded border border-[var(--border)] text-xs font-mono text-[var(--accent-teal)] overflow-x-auto whitespace-pre leading-normal">
 {`curl -X GET ${baseUrl}/data \\
   -H "x-api-key: YOUR_API_KEY"`}
             </div>

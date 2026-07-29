@@ -130,3 +130,43 @@ This document records the incremental updates made to the DOnC-key platform, cat
   * **Modified files**:
     * [documents.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/routes/documents.js#L15) (Reconfigured Multer storage engine and added disk cleanup logic)
   * **Roadmap Update**: Marked "Fix RAM Exhaustion Vulnerability" as complete in [todo-tasks.md](file:///c:/Users/Prasad/Downloads/Projects/donk/todo-tasks.md).
+
+---
+
+### 📝 Prompt 13: "The Intake Desk" Visual Identity & UI Theme Overhaul
+* **Date**: July 29, 2026
+* **Objective**: Replace the legacy blue-and-slate glassmorphism visual system with "The Intake Desk" design specification documented in [DOnC-key_New_UI_Theme_Spec.md](file:///c:/Users/Prasad/Downloads/Projects/donk/DOnC-key_New_UI_Theme_Spec.md).
+* **Work Done & Edits**:
+  * **Design Tokens & Fonts**: Configured Google Fonts (`Fraunces`, `IBM Plex Sans`, `IBM Plex Mono`) in [index.html](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/index.html) and custom CSS properties (`--canvas`, `--surface`, `--ink`, `--border`, `--accent-teal`, etc.), extending [tailwind.config.js](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/tailwind.config.js) and [index.css](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/index.css).
+  * **Signature Components**: Created reusable [StatusStamp.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/components/StatusStamp.jsx) with 300ms stampDown status transition animation and [DotLeaderRow.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/components/DotLeaderRow.jsx) for catalog field visualization.
+  * **Folder Tab Navigation**: Replaced generic tab and sidebar highlights with folder-tab protrusion styles across [Sidebar.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/components/Sidebar.jsx), [DocumentDetail.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/pages/DocumentDetail.jsx), and [ProjectDetail.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/pages/ProjectDetail.jsx).
+  * **Page Restyling & Accessibility**: Applied theme tokens, typewriter block cursor in [ChatTab.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/components/ChatTab.jsx), perforated tear-off API key slip modal, kraft dashed dropzone in [Dashboard.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/pages/Dashboard.jsx) and [UploadDocument.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/pages/UploadDocument.jsx), and added modal `role="dialog"` accessibility and mobile off-canvas drawer navigation in [AppLayout.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/components/AppLayout.jsx).
+  * **Modified files**:
+    * [index.html](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/index.html)
+    * [tailwind.config.js](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/tailwind.config.js)
+    * [index.css](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/index.css)
+    * [StatusStamp.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/components/StatusStamp.jsx) [NEW]
+    * [DotLeaderRow.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/components/DotLeaderRow.jsx) [NEW]
+    * [Aurora.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/components/Aurora.jsx)
+    * [Sidebar.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/components/Sidebar.jsx)
+    * [AppLayout.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/components/AppLayout.jsx)
+    * [OAuth.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/components/OAuth.jsx)
+    * [Landing.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/pages/Landing.jsx)
+    * [Login.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/pages/Login.jsx)
+    * [Signup.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/pages/Signup.jsx)
+    * [Dashboard.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/pages/Dashboard.jsx)
+    * [Documents.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/pages/Documents.jsx)
+    * [DocumentDetail.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/pages/DocumentDetail.jsx)
+    * [StructureTab.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/components/StructureTab.jsx)
+    * [TryApiTab.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/components/TryApiTab.jsx)
+    * [ChatTab.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/components/ChatTab.jsx)
+    * [ApiLogsTab.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/components/ApiLogsTab.jsx)
+    * [Projects.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/pages/Projects.jsx)
+    * [ProjectDetail.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/pages/ProjectDetail.jsx)
+    * [WebhookSettingsTab.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/components/WebhookSettingsTab.jsx)
+    * [Usage.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/pages/Usage.jsx)
+    * [PlatformDocs.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/pages/PlatformDocs.jsx)
+    * [ApiDocsTab.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/components/ApiDocsTab.jsx)
+    * [UploadDocument.jsx](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/pages/UploadDocument.jsx)
+    * [api.js](file:///c:/Users/Prasad/Downloads/Projects/donk/frontend/src/utils/api.js)
+

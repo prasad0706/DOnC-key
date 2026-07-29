@@ -1,12 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { 
-  CloudArrowUpIcon, 
   TrashIcon, 
-  PlusIcon,
-  InformationCircleIcon,
-  CheckCircleIcon,
-  XCircleIcon
+  PlusIcon
 } from '@heroicons/react/24/outline';
 import { getWebhooks, createWebhook, deleteWebhook } from '../utils/api';
 
@@ -98,13 +94,13 @@ const WebhookSettingsTab = ({ projectId }) => {
   return (
     <div className="space-y-6">
       {error && (
-        <div className="p-4 rounded-xl border text-sm bg-rose-50 text-rose-700 border-rose-200/50 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20">
+        <div className="p-4 rounded text-sm bg-red-500/10 text-[var(--accent-red)] border border-red-500/20">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="p-4 rounded-xl border text-sm bg-emerald-50 text-emerald-700 border-emerald-200/50 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20">
+        <div className="p-4 rounded text-sm bg-teal-500/10 text-[var(--accent-teal)] border border-teal-500/20">
           {success}
         </div>
       )}
@@ -112,11 +108,11 @@ const WebhookSettingsTab = ({ projectId }) => {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Left: Webhooks List (3 cols) */}
         <div className="lg:col-span-3 space-y-6">
-          <div className="card-premium-no-hover p-6">
-            <h2 className="text-md font-bold text-slate-900 dark:text-white uppercase tracking-wider text-xs mb-4">Active Subscriptions</h2>
+          <div className="card-static p-6">
+            <h2 className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider mb-4">Active Webhook Subscriptions</h2>
             
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-100 dark:divide-slate-800/40">
+              <table className="min-w-full">
                 <thead>
                   <tr>
                     <th scope="col" className="table-header-premium">Endpoint URL</th>
@@ -124,36 +120,37 @@ const WebhookSettingsTab = ({ projectId }) => {
                     <th scope="col" className="table-header-premium text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/40">
+                <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan="3" className="px-6 py-6 text-center text-xs font-semibold text-slate-500 dark:text-slate-400">
+                      <td colSpan="3" className="px-6 py-6 text-center text-xs font-mono text-[var(--ink-muted)]">
                         Loading subscriptions...
                       </td>
                     </tr>
                   ) : webhooks.length > 0 ? (
                     webhooks.map((webhook) => (
                       <tr key={webhook._id} className="table-row-premium">
-                        <td className="px-6 py-4 whitespace-nowrap text-xs font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[200px]" title={webhook.url}>
+                        <td className="px-6 py-4 whitespace-nowrap text-xs font-mono text-[var(--ink)] truncate max-w-[200px]" title={webhook.url}>
                           {webhook.url}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-[10px] font-mono text-slate-500 dark:text-slate-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-[10px] font-mono text-[var(--ink-muted)]">
                           {webhook.events.join(', ')}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-xs">
                           <button
                             onClick={() => handleDelete(webhook._id)}
-                            className="text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition-colors p-1"
+                            className="btn-danger p-1"
+                            title="Delete Webhook"
                           >
-                            <TrashIcon className="h-4.5 w-4.5" />
+                            <TrashIcon className="h-4 w-4" />
                           </button>
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="3" className="px-6 py-8 text-center text-xs font-semibold text-slate-500 dark:text-slate-400">
-                        No active webhooks configured for this project.
+                      <td colSpan="3" className="px-6 py-8 text-center text-xs font-mono text-[var(--ink-muted)]">
+                        No active webhooks registered for this case file project.
                       </td>
                     </tr>
                   )}
@@ -165,11 +162,11 @@ const WebhookSettingsTab = ({ projectId }) => {
 
         {/* Right: Add Webhook Form (2 cols) */}
         <div className="lg:col-span-2 space-y-6">
-          <form onSubmit={handleCreate} className="card-premium-no-hover p-6 space-y-5">
-            <h2 className="text-md font-bold text-slate-900 dark:text-white uppercase tracking-wider text-xs">Register Webhook</h2>
+          <form onSubmit={handleCreate} className="card-static p-6 space-y-5">
+            <h2 className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider">Register Webhook Endpoint</h2>
             
             <div className="space-y-1.5">
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-[var(--ink-muted)]">
                 Endpoint URL
               </label>
               <input
@@ -177,38 +174,38 @@ const WebhookSettingsTab = ({ projectId }) => {
                 value={newUrl}
                 onChange={(e) => setNewUrl(e.target.value)}
                 placeholder="https://yourdomain.com/webhooks"
-                className="input-premium"
+                className="input font-mono"
                 required
                 disabled={submitting}
               />
             </div>
 
             <div className="space-y-2.5">
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-[var(--ink-muted)]">
                 Trigger Events
               </label>
               
               <div className="space-y-2">
-                <label className="flex items-center space-x-2.5 cursor-pointer text-xs font-semibold text-slate-600 dark:text-slate-400">
+                <label className="flex items-center space-x-2.5 cursor-pointer text-xs font-medium text-[var(--ink-muted)]">
                   <input
                     type="checkbox"
                     checked={events['document.ready']}
                     onChange={() => handleCheckboxChange('document.ready')}
-                    className="rounded border-slate-300 dark:border-slate-800 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-[var(--border)] text-[var(--accent-teal)] focus:ring-[var(--accent-teal)]"
                     disabled={submitting}
                   />
-                  <span>document.ready</span>
+                  <span className="font-mono">document.ready</span>
                 </label>
 
-                <label className="flex items-center space-x-2.5 cursor-pointer text-xs font-semibold text-slate-600 dark:text-slate-400">
+                <label className="flex items-center space-x-2.5 cursor-pointer text-xs font-medium text-[var(--ink-muted)]">
                   <input
                     type="checkbox"
                     checked={events['document.failed']}
                     onChange={() => handleCheckboxChange('document.failed')}
-                    className="rounded border-slate-300 dark:border-slate-800 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-[var(--border)] text-[var(--accent-teal)] focus:ring-[var(--accent-teal)]"
                     disabled={submitting}
                   />
-                  <span>document.failed</span>
+                  <span className="font-mono">document.failed</span>
                 </label>
               </div>
             </div>

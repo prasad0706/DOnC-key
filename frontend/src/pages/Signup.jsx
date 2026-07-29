@@ -51,29 +51,25 @@ const Signup = () => {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-[#090d16] text-slate-800 dark:text-slate-200 transition-colors duration-300 overflow-hidden">
-      {/* Background Spotlight Glows */}
-      <div className="glow-spotlight glow-blue w-[400px] h-[400px] top-[10%] left-[10%]" />
-      <div className="glow-spotlight glow-purple w-[450px] h-[450px] bottom-[10%] right-[10%]" />
-
-      <div className="card-premium-no-hover w-full max-w-md p-8 backdrop-blur-md bg-white/80 dark:bg-[#0f172a]/80">
+    <div className="relative min-h-screen flex items-center justify-center p-4 bg-[var(--canvas)] text-[var(--ink)] overflow-hidden">
+      <div className="card-static w-full max-w-md p-8 bg-[var(--surface)] border border-[var(--border)]">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/25 mb-4">
-            <DocumentTextIcon className="h-6 w-6 text-white" />
+          <div className="w-12 h-12 rounded-md border-2 border-[var(--accent-teal)] flex items-center justify-center bg-transparent mb-4">
+            <DocumentTextIcon className="h-6 w-6 text-[var(--accent-teal)]" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-950 dark:text-white">DOnC-key</h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1.5 font-medium">Create your account</p>
+          <h1 className="text-2xl font-bold font-display tracking-tight text-[var(--ink)]">DOnC-key</h1>
+          <p className="text-[var(--ink-muted)] text-sm mt-1.5 font-medium">Create your account</p>
         </div>
 
         {error && (
-          <div className="mb-5 p-3.5 rounded-xl text-sm border bg-rose-50 text-rose-700 border-rose-200/50 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20">
+          <div className="mb-5 p-3.5 rounded text-sm border bg-red-500/10 text-[var(--accent-red)] border-red-500/20">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+            <label htmlFor="email" className="block text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)] mb-1.5">
               Email address
             </label>
             <input
@@ -84,13 +80,13 @@ const Signup = () => {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="input-premium"
+              className="input"
               placeholder="you@example.com"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+            <label htmlFor="password" className="block text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)] mb-1.5">
               Password
             </label>
             <input
@@ -101,14 +97,14 @@ const Signup = () => {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="input-premium"
+              className="input"
               placeholder="••••••••"
             />
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-medium">Minimum 6 characters</p>
+            <p className="text-[10px] text-[var(--ink-muted)] mt-1 font-medium">Minimum 6 characters</p>
           </div>
 
           <div>
-            <label htmlFor="confirm-password" className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+            <label htmlFor="confirm-password" className="block text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)] mb-1.5">
               Confirm Password
             </label>
             <input
@@ -119,7 +115,7 @@ const Signup = () => {
               required
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="input-premium"
+              className="input"
               placeholder="••••••••"
             />
           </div>
@@ -135,10 +131,10 @@ const Signup = () => {
 
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-100 dark:border-slate-800/80"></div>
+            <div className="w-full border-t border-[var(--border)]"></div>
           </div>
           <div className="relative flex justify-center text-xs font-bold uppercase tracking-wider">
-            <span className="bg-white dark:bg-[#0f172a] px-3 text-slate-400">Or continue with</span>
+            <span className="bg-[var(--surface)] px-3 text-[var(--ink-muted)]">Or continue with</span>
           </div>
         </div>
 
@@ -147,9 +143,9 @@ const Signup = () => {
         </div>
 
         <div className="mt-8 text-center text-sm font-medium">
-          <p className="text-slate-500 dark:text-slate-400">
+          <p className="text-[var(--ink-muted)]">
             Already have an account?{' '}
-            <Link to="/login" className="font-bold text-blue-600 dark:text-blue-400 hover:underline">
+            <Link to="/login" className="font-bold text-[var(--accent-teal)] hover:underline">
               Sign in
             </Link>
           </p>

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { DocumentTextIcon, KeyIcon, ChartBarIcon, CloudArrowUpIcon, FolderIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { DocumentTextIcon, KeyIcon, ChartBarIcon, CloudArrowUpIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { uploadDocument, getProjects, createProject, getDashboardStats } from '../utils/api';
 
 const Dashboard = () => {
@@ -11,6 +11,7 @@ const Dashboard = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [file, setFile] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Project Selection State
   const [showProjectModal, setShowProjectModal] = useState(false);
@@ -43,6 +44,18 @@ const Dashboard = () => {
     loadStats();
   }, []);
 
+  // Escape key handler for Modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && showProjectModal) {
+        setShowProjectModal(false);
+        setIsCreatingProject(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showProjectModal]);
+
   const fetchProjects = async () => {
     try {
       setProjectLoading(true);
@@ -59,6 +72,23 @@ const Dashboard = () => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
       setFile(selectedFile);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      setFile(e.dataTransfer.files[0]);
     }
   };
 
@@ -119,22 +149,31 @@ const Dashboard = () => {
     <div className="p-6 max-w-7xl mx-auto space-y-8">
       {/* Page Title */}
       <div>
-        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Dashboard</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">Overview of your document intelligence status.</p>
+        <h1 className="text-3xl font-display font-semibold tracking-tight text-[var(--ink)]">The Intake Desk</h1>
+        <p className="text-sm text-[var(--ink-muted)] mt-1 font-medium">Overview of document intake records & data status.</p>
       </div>
 
-      {/* Upload Section Card */}
-      <div className="card-premium-no-hover p-8 relative overflow-hidden backdrop-blur-md bg-white/50 dark:bg-[#0f172a]/40">
+      {/* Upload Drop Zone Card */}
+      <div
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={`card p-8 transition-colors ${
+          isDragging
+            ? 'border-2 border-solid border-[var(--accent-teal)] bg-[var(--surface-sunken)]'
+            : 'border-2 border-dashed border-[var(--border)] bg-[var(--surface)]'
+        }`}
+      >
         <div className="flex flex-col items-center justify-center text-center max-w-lg mx-auto">
-          <div className="p-4 rounded-2xl mb-5 bg-blue-50 dark:bg-blue-950/35 text-blue-600 dark:text-blue-400 shadow-inner">
+          <div className="p-4 rounded-full mb-4 border border-[var(--border)] bg-[var(--surface-sunken)] text-[var(--accent-teal)]">
             <CloudArrowUpIcon className="h-8 w-8" />
           </div>
 
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
-            Upload Document
+          <h2 className="text-xl font-display font-semibold text-[var(--ink)] mb-2">
+            Intake Document
           </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 font-medium leading-relaxed">
-            Drag & drop or browse to process your file. Supported formats: PDF, DOCX, XLSX, CSV, JPG, PNG, GIF. (Max 10MB)
+          <p className="text-sm text-[var(--ink-muted)] mb-6 font-medium leading-relaxed">
+            Drag & drop or browse to submit files to the registry. Formats: PDF, DOCX, XLSX, CSV, JPG, PNG. (Max 10MB)
           </p>
 
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full">
@@ -147,29 +186,29 @@ const Dashboard = () => {
             />
             <label
               htmlFor="document-upload"
-              className="flex-1 w-full px-5 py-3 rounded-xl cursor-pointer font-semibold transition-all duration-200 text-center text-sm border bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-800/80 dark:hover:text-white truncate"
+              className="flex-1 w-full px-4 py-2.5 rounded cursor-pointer font-semibold transition-all text-center text-sm border border-[var(--border)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[var(--surface-sunken)] truncate"
             >
-              {file ? file.name : 'Choose File'}
+              {file ? file.name : 'Select File'}
             </label>
             <button
               onClick={handleInitiateUpload}
               disabled={!file || isUploading}
-              className="w-full sm:w-auto btn-primary py-3 px-8 text-sm"
+              className="w-full sm:w-auto btn-primary py-2.5 px-8 text-sm"
             >
-              {isUploading ? 'Uploading...' : 'Upload'}
+              {isUploading ? 'Uploading...' : 'Submit to Registry'}
             </button>
           </div>
 
           {isUploading && (
-            <div className="mt-8 w-full">
-              <div className="w-full rounded-full h-1.5 bg-slate-100 dark:bg-slate-800">
+            <div className="mt-6 w-full">
+              <div className="w-full rounded-full h-2 bg-[var(--surface-sunken)] border border-[var(--border)] overflow-hidden">
                 <div
-                  className="bg-blue-500 h-1.5 rounded-full transition-all duration-300 ease-out"
+                  className="bg-[var(--accent-teal)] h-full transition-all duration-300 ease-out"
                   style={{ width: `${uploadProgress}%` }}
                 ></div>
               </div>
-              <p className="text-xs mt-3 font-semibold text-blue-600 dark:text-blue-400">
-                {uploadProgress}% Uploading...
+              <p className="text-xs mt-2 font-mono font-semibold text-[var(--accent-teal)]">
+                {uploadProgress}% Processing Intake...
               </p>
             </div>
           )}
@@ -179,58 +218,56 @@ const Dashboard = () => {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Total Documents */}
-        <div className="card-premium p-6 flex items-center justify-between">
+        <div className="card p-6 flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Documents</p>
-            <p className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">Total Documents</p>
+            <p className="text-3xl font-display font-semibold text-[var(--ink)]">
               {stats.totalDocuments}
             </p>
           </div>
-          <div className="p-3.5 rounded-xl bg-blue-50 dark:bg-blue-950/45 text-blue-600 dark:text-blue-400">
+          <div className="p-3.5 rounded-full border border-[var(--border)] bg-[var(--surface-sunken)] text-[var(--accent-teal)]">
             <DocumentTextIcon className="h-6 w-6" />
           </div>
         </div>
 
         {/* Processing Status */}
-        <div className="card-premium p-6 flex items-center justify-between">
+        <div className="card p-6 flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Processing</p>
-            <p className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">Processing</p>
+            <p className="text-3xl font-display font-semibold text-[var(--ink)]">
               {stats.processingDocuments}
             </p>
           </div>
-          <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/45 text-amber-600 dark:text-amber-400">
-            <div className="flex items-center justify-center h-6 w-6">
-              <span className="relative flex h-3.5 w-3.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-amber-500"></span>
-              </span>
-            </div>
+          <div className="p-3.5 rounded-full border border-[var(--border)] bg-[var(--surface-sunken)] text-[var(--accent-ochre)]">
+            <span className="relative flex h-3.5 w-3.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent-ochre)] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[var(--accent-ochre)]"></span>
+            </span>
           </div>
         </div>
 
         {/* API Keys */}
-        <div className="card-premium p-6 flex items-center justify-between">
+        <div className="card p-6 flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">API Keys</p>
-            <p className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">API Keys</p>
+            <p className="text-3xl font-display font-semibold text-[var(--ink)]">
               {stats.apiKeys}
             </p>
           </div>
-          <div className="p-3.5 rounded-xl bg-purple-50 dark:bg-purple-950/45 text-purple-600 dark:text-purple-400">
+          <div className="p-3.5 rounded-full border border-[var(--border)] bg-[var(--surface-sunken)] text-[var(--accent-teal)]">
             <KeyIcon className="h-6 w-6" />
           </div>
         </div>
 
         {/* Total API Calls */}
-        <div className="card-premium p-6 flex items-center justify-between">
+        <div className="card p-6 flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">API Calls</p>
-            <p className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">API Calls</p>
+            <p className="text-3xl font-display font-semibold text-[var(--ink)]">
               {stats.totalApiCalls}
             </p>
           </div>
-          <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/45 text-emerald-600 dark:text-emerald-400">
+          <div className="p-3.5 rounded-full border border-[var(--border)] bg-[var(--surface-sunken)] text-[var(--accent-graphite)]">
             <ChartBarIcon className="h-6 w-6" />
           </div>
         </div>
@@ -239,23 +276,28 @@ const Dashboard = () => {
       {/* Select Project Modal Portal */}
       {showProjectModal && createPortal(
         <div className="backdrop-glass" onClick={() => { setShowProjectModal(false); setIsCreatingProject(false); }}>
-          <div className="modal-theme" onClick={e => e.stopPropagation()}>
+          <div
+            className="modal-theme"
+            role="dialog"
+            aria-modal="true"
+            onClick={e => e.stopPropagation()}
+          >
             <div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
-                Select Project
+              <h3 className="text-xl font-display font-semibold text-[var(--ink)] mb-2">
+                Assign Case File Project
               </h3>
-              <p className="mb-6 text-sm text-slate-500 dark:text-slate-400 font-medium">
-                Choose a project to add this document to, or create a new one.
+              <p className="mb-6 text-sm text-[var(--ink-muted)] font-medium">
+                Choose a project folder for this document intake record, or create a new case file.
               </p>
 
               {!isCreatingProject ? (
                 <div className="space-y-5">
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
-                      Existing Projects
+                    <label className="block text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)] mb-1.5">
+                      Existing Case Files
                     </label>
                     <select
-                      className="input-premium focus:ring-4 focus:ring-blue-500/10"
+                      className="input"
                       value={selectedProjectId}
                       onChange={(e) => setSelectedProjectId(e.target.value)}
                     >
@@ -267,38 +309,38 @@ const Dashboard = () => {
                   </div>
 
                   <div className="flex items-center my-4">
-                    <div className="flex-grow border-t border-slate-100 dark:border-slate-800/60"></div>
-                    <span className="px-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">OR</span>
-                    <div className="flex-grow border-t border-slate-100 dark:border-slate-800/60"></div>
+                    <div className="flex-grow border-t border-[var(--border)]"></div>
+                    <span className="px-3 text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">OR</span>
+                    <div className="flex-grow border-t border-[var(--border)]"></div>
                   </div>
 
                   <button
                     onClick={() => setIsCreatingProject(true)}
-                    className="w-full py-3 px-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors flex items-center justify-center gap-2 text-sm font-semibold cursor-pointer"
+                    className="w-full py-3 px-4 rounded border border-dashed border-[var(--border)] text-[var(--ink)] hover:bg-[var(--surface-sunken)] transition-colors flex items-center justify-center gap-2 text-sm font-semibold cursor-pointer"
                   >
                     <PlusIcon className="h-4 w-4" />
-                    Create New Project
+                    Create New Case File
                   </button>
                 </div>
               ) : (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
-                      New Project Name
+                    <label className="block text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)] mb-1.5">
+                      Case File Name
                     </label>
                     <input
                       type="text"
                       autoFocus
                       value={newProjectName}
                       onChange={e => setNewProjectName(e.target.value)}
-                      placeholder="e.g. Q1 Financials"
-                      className="input-premium"
+                      placeholder="e.g. Invoices 2026"
+                      className="input"
                     />
                     <button
                       onClick={() => setIsCreatingProject(false)}
-                      className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline mt-2 inline-block"
+                      className="text-xs font-bold text-[var(--accent-teal)] hover:underline mt-2 inline-block"
                     >
-                      &larr; Back to select existing
+                      &larr; Back to existing case files
                     </button>
                   </div>
                 </div>
@@ -316,7 +358,7 @@ const Dashboard = () => {
                   disabled={isCreatingProject ? !newProjectName.trim() : !selectedProjectId}
                   className="btn-primary"
                 >
-                  {isCreatingProject ? 'Create & Upload' : 'Upload'}
+                  {isCreatingProject ? 'Create & Process' : 'Process Intake'}
                 </button>
               </div>
             </div>

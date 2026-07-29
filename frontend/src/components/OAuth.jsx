@@ -26,10 +26,10 @@ export default function OAuth() {
         <button
             onClick={handleGoogleClick}
             type='button'
-            className='w-full flex items-center justify-center gap-2 bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 font-medium py-2 px-4 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors'
+            className='btn-secondary w-full gap-2'
         >
             <FcGoogle className='text-xl' />
-            Continue with Google
+            <span>Continue with Google</span>
         </button>
     );
 }

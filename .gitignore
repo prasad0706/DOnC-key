@@ -32,3 +32,7 @@ backend/temp/
 *.sw?
 Thumbs.db
 /.obsidian
+/DOnC-key_New_UI_Theme_Spec.md
+/frontend/frontendREADME.md
+/backend/backendREADME.md
+/DOnC-key_Full_Stack_Review.md
