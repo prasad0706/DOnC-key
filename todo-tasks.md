@@ -14,10 +14,10 @@
 - [x] **Fix RAM Exhaustion Vulnerability**
   - [x] Reconfigure Multer storage engine in [documents.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/routes/documents.js) away from `memoryStorage`
   - [x] Implement streaming uploads or `diskStorage`
-- [ ] **Fix Document Chunking Strategy**
-  - [ ] Implement a Recursive Character Text Splitting helper (e.g., 500 tokens, 50-token overlap)
-  - [ ] Refactor [documentProcessor.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/utils/documentProcessor.js) to chunk text and generate vector embeddings for chunks instead of the entire document
-  - [ ] Update [DocumentData.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/models/DocumentData.js) model to support chunk storage and update Search/Chat logic to utilize chunk embeddings
+- [x] **Fix Document Chunking Strategy**
+  - [x] Implement a Recursive Character Text Splitting helper (e.g., 500 tokens, 50-token overlap)
+  - [x] Refactor [documentProcessor.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/utils/documentProcessor.js) to chunk text and generate vector embeddings for chunks instead of the entire document
+  - [x] Update [DocumentData.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/models/DocumentData.js) model to support chunk storage and update Search/Chat logic to utilize chunk embeddings
 
 ## 🛠️ Category 2: Missing Core Production Features
 - [ ] **Implement Automated Testing**

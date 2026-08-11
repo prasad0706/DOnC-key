@@ -15,6 +15,11 @@ const documentDataSchema = new mongoose.Schema({
     type: [Number],
     required: false
   },
+  chunks: [{
+    chunkIndex: { type: Number, required: true },
+    text: { type: String, required: true },
+    embedding: { type: [Number], required: false }
+  }],
   createdAt: {
     type: Date,
     default: Date.now

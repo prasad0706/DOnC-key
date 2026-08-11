@@ -284,11 +284,12 @@ router.get('/search', verifyToken, async (req, res, next) => {
         const queryVector = await generateEmbeddings(q);
         
         if (queryVector) {
+          // Attempt Atlas Vector Search across chunk vectors or document embeddings
           results = await DocumentData.aggregate([
             {
               $vectorSearch: {
                 index: "vector_index",
-                path: "embeddings",
+                path: "chunks.embedding",
                 queryVector: queryVector,
                 numCandidates: 100,
                 limit: 20
@@ -303,6 +304,7 @@ router.get('/search', verifyToken, async (req, res, next) => {
               $project: {
                 documentId: 1,
                 data: 1,
+                chunks: 1,
                 score: { $meta: "vectorSearchScore" }
               }
             }
@@ -324,16 +326,21 @@ router.get('/search', verifyToken, async (req, res, next) => {
       ).sort({ score: { $meta: 'textScore' } }).limit(20);
     }
 
-    // Enrich with document metadata
+    // Enrich with document metadata and relevant chunk snippet
     const enriched = await Promise.all(results.map(async (r) => {
       const doc = await Document.findById(r.documentId);
       const score = searchMethod === 'semantic' ? r.score : (r._doc ? r._doc.score : r.score);
+      const snippet = r.chunks && r.chunks.length > 0
+        ? r.chunks[0].text.substring(0, 200) + '...'
+        : (r.data?.summary?.substring(0, 200) + '...');
+
       return {
         documentId: r.documentId,
         fileName: doc?.fileName || r.documentId,
         status: doc?.status,
         score: score || 1.0,
-        summary: r.data?.summary?.substring(0, 200) + '...',
+        summary: snippet,
+        chunkCount: r.chunks ? r.chunks.length : 0,
         category: r.data?.category
       };
     }));

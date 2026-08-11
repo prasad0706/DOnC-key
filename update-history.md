@@ -130,3 +130,15 @@ This document records the incremental updates made to the DOnC-key platform, cat
   * **Modified files**:
     * [documents.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/routes/documents.js#L15) (Reconfigured Multer storage engine and added disk cleanup logic)
   * **Roadmap Update**: Marked "Fix RAM Exhaustion Vulnerability" as complete in [todo-tasks.md](file:///c:/Users/Prasad/Downloads/Projects/donk/todo-tasks.md).
+
+---
+
+### 📝 Prompt 13: Fix Document Chunking Strategy (Recursive Text Splitting & Multi-Chunk Vectors)
+* **Date**: August 11, 2026
+* **Objective**: Replace text truncation with a Recursive Character Text Splitting strategy (~500 tokens / ~1500 chars with ~50 tokens / ~150 chars overlap) and generate multi-chunk vector embeddings for RAG and semantic search.
+* **Work Done & Edits**:
+  * **Text Splitter Module**: Created [textSplitter.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/utils/textSplitter.js) implementing recursive splitting along natural separators (`\n\n`, `\n`, `. `, ` `, `""`).
+  * **Multi-Chunk Schema**: Updated [DocumentData.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/models/DocumentData.js#L18) to store a `chunks` array containing `chunkIndex`, `text`, and `embedding`.
+  * **Chunk Vector Ingestion**: Updated [documentProcessor.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/utils/documentProcessor.js#L59) to split extracted document text and generate vector embeddings per chunk.
+  * **Vector Search Pipeline**: Updated [documents.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/routes/documents.js#L284) to query `chunks.embedding` and return targeted chunk snippets in semantic search results.
+  * **Roadmap Update**: Marked "Fix Document Chunking Strategy" as complete in [todo-tasks.md](file:///c:/Users/Prasad/Downloads/Projects/donk/todo-tasks.md) — completing all tasks in **Category 1: Critical Code & Architectural Fixes**.

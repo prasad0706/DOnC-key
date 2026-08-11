@@ -56,25 +56,45 @@ async function processDocument(documentId, fileUrl) {
       processedData.extractedText = text;
     }
 
-    // Generate text embeddings for vector search
-    let textToEmbed = '';
-    if (processedData.extractedText) {
-      textToEmbed = processedData.extractedText;
-    } else if (processedData.summary) {
-      textToEmbed = processedData.summary;
-    }
+    // 4. Generate multi-chunk text embeddings for vector search & RAG context
+    const { recursiveSplitText } = require('./textSplitter');
+    const { generateEmbeddings } = require('./gemini');
 
+    let textToEmbed = processedData.extractedText || processedData.summary || '';
     let embeddings = null;
+    let chunks = [];
+
     if (textToEmbed) {
-      logger.info('Generating vector embeddings', { documentId });
-      const { generateEmbeddings } = require('./gemini');
-      embeddings = await generateEmbeddings(textToEmbed);
+      logger.info('Splitting text and generating vector embeddings', { documentId, textLength: textToEmbed.length });
+      const splitChunks = recursiveSplitText(textToEmbed);
+
+      for (const chunkObj of splitChunks) {
+        try {
+          const vector = await generateEmbeddings(chunkObj.text);
+          chunks.push({
+            chunkIndex: chunkObj.chunkIndex,
+            text: chunkObj.text,
+            embedding: vector
+          });
+        } catch (chunkErr) {
+          logger.warn('Failed to generate embedding for chunk', { documentId, chunkIndex: chunkObj.chunkIndex, error: chunkErr.message });
+          chunks.push({
+            chunkIndex: chunkObj.chunkIndex,
+            text: chunkObj.text,
+            embedding: null
+          });
+        }
+      }
+
+      // Top-level embedding fallback (first valid chunk embedding or full text embedding)
+      const firstValidChunk = chunks.find(c => c.embedding && c.embedding.length > 0);
+      embeddings = firstValidChunk ? firstValidChunk.embedding : await generateEmbeddings(textToEmbed.substring(0, 8000));
     }
 
-    // 4. Save processed data to MongoDB (upsert to handle retries/re-runs safely)
+    // 5. Save processed data and chunks to MongoDB (upsert to handle retries/re-runs safely)
     await DocumentData.findOneAndUpdate(
       { documentId },
-      { documentId, data: processedData, embeddings, createdAt: new Date() },
+      { documentId, data: processedData, embeddings, chunks, createdAt: new Date() },
       { upsert: true, new: true }
     );
 
