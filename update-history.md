@@ -142,3 +142,16 @@ This document records the incremental updates made to the DOnC-key platform, cat
   * **Chunk Vector Ingestion**: Updated [documentProcessor.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/utils/documentProcessor.js#L59) to split extracted document text and generate vector embeddings per chunk.
   * **Vector Search Pipeline**: Updated [documents.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/routes/documents.js#L284) to query `chunks.embedding` and return targeted chunk snippets in semantic search results.
   * **Roadmap Update**: Marked "Fix Document Chunking Strategy" as complete in [todo-tasks.md](file:///c:/Users/Prasad/Downloads/Projects/donk/todo-tasks.md) — completing all tasks in **Category 1: Critical Code & Architectural Fixes**.
+
+---
+
+### 📝 Prompt 14: Implement Automated Testing (Jest & Supertest Integration)
+* **Date**: August 11, 2026
+* **Objective**: Configure an automated unit and integration testing environment replacing manual QA checklists with automated test suites.
+* **Work Done & Edits**:
+  * **Environment Setup**: Configured Jest test runner environment in [jest.config.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/jest.config.js) and registered `"test": "jest --detectOpenHandles --forceExit"` script in [package.json](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/package.json#L9). Added `jest` and `supertest` to `devDependencies`.
+  * **Test Suites**:
+    * Created [textSplitter.test.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/tests/textSplitter.test.js) for recursive text splitter unit testing.
+    * Created [auth.test.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/tests/auth.test.js) for token parsing and timing-safe API key hash verification testing.
+    * Created [documents.test.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/tests/documents.test.js) for Express REST API endpoint integration testing via Supertest.
+  * **Roadmap Update**: Marked "Implement Automated Testing" as complete in [todo-tasks.md](file:///c:/Users/Prasad/Downloads/Projects/donk/todo-tasks.md).
