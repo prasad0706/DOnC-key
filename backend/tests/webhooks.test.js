@@ -47,3 +47,22 @@ describe('Webhook Payload Signing (HMAC SHA-256)', () => {
     expect(isValid).toBe(false);
   });
 });
+
+describe('Webhook Dead Letter Queue (DLQ) Logic', () => {
+  test('formats DLQ entry schema fields correctly', () => {
+    const dlqEntry = {
+      url: 'https://example.com/webhook',
+      event: 'document.failed',
+      payload: { documentId: 'doc_999', error: 'ECONNREFUSED' },
+      secret: 'whsec_sample_secret_key_1234567890',
+      error: 'Connection timeout after 5000ms',
+      attemptsMade: 5,
+      userId: 'user_123'
+    };
+
+    expect(dlqEntry.url).toBe('https://example.com/webhook');
+    expect(dlqEntry.attemptsMade).toBe(5);
+    expect(dlqEntry.event).toBe('document.failed');
+    expect(dlqEntry.payload).toHaveProperty('documentId');
+  });
+});

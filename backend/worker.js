@@ -97,12 +97,33 @@ const webhookWorker = new Worker('webhookDelivery', async job => {
   }
 });
 
+const WebhookDLQ = require('./models/WebhookDLQ');
+
 webhookWorker.on('error', err => {
   console.error('Webhook Worker error:', err);
 });
 
-webhookWorker.on('failed', (job, err) => {
+webhookWorker.on('failed', async (job, err) => {
   console.error(`Webhook Job ${job?.id} failed to deliver to ${job?.data?.url}:`, err.message);
+
+  if (job && job.data) {
+    try {
+      const { url, payload, secret } = job.data;
+      await WebhookDLQ.create({
+        url: url || 'unknown',
+        event: payload?.event || 'document.unknown',
+        payload: payload || {},
+        secret: secret || null,
+        error: err.message,
+        attemptsMade: job.attemptsMade || 1,
+        projectId: payload?.projectId || null,
+        userId: payload?.userId || 'system'
+      });
+      console.log(`Worker: Routed failed webhook job ${job.id} to WebhookDLQ database collection`);
+    } catch (dlqErr) {
+      console.error('Worker: Failed to record webhook to WebhookDLQ collection', dlqErr.message);
+    }
+  }
 });
 
 console.log('Webhook delivery worker started');

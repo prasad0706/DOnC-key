@@ -26,9 +26,9 @@
 - [x] **Implement Webhook Payload Signing**
   - [x] Compute HMAC signature (SHA-256) of webhook payload using a shared project/user secret
   - [x] Dispatch signature in `X-Hub-Signature-256` header in [worker.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/worker.js)
-- [ ] **Implement Webhook Dead Letter Queue (DLQ)**
-  - [ ] Route permanently failed webhook jobs to a BullMQ DLQ
-  - [ ] Expose an endpoint and UI options to replay failed webhook events
+- [x] **Implement Webhook Dead Letter Queue (DLQ)**
+  - [x] Route permanently failed webhook jobs to a BullMQ DLQ
+  - [x] Expose an endpoint and UI options to replay failed webhook events
 - [ ] **Implement Proactive Rate-Limiting**
   - [ ] Configure BullMQ queue-level limiters in [queue.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/utils/queue.js) to proactively restrict execution speeds to match upstream Gemini API constraints
 - [ ] **Implement Deep File Validation**

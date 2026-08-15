@@ -53,6 +53,59 @@ router.get('/', async (req, res, next) => {
   }
 });
 
+// GET /api/webhooks/dlq — List failed webhook deliveries (Dead Letter Queue)
+router.get('/dlq', async (req, res, next) => {
+  try {
+    const WebhookDLQ = require('../models/WebhookDLQ');
+    const { projectId } = req.query;
+    const filter = { userId: req.user.uid };
+    if (projectId) filter.projectId = projectId;
+
+    const dlqEntries = await WebhookDLQ.find(filter).sort({ createdAt: -1 }).limit(50);
+    res.json(dlqEntries);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/webhooks/dlq/:id/replay — Replay a failed webhook delivery
+router.post('/dlq/:id/replay', async (req, res, next) => {
+  try {
+    const WebhookDLQ = require('../models/WebhookDLQ');
+    const { webhookQueue } = require('../utils/queue');
+
+    const dlqEntry = await WebhookDLQ.findOne({
+      _id: req.params.id,
+      userId: req.user.uid
+    });
+
+    if (!dlqEntry) {
+      return res.status(404).json({ error: 'Failed webhook entry not found' });
+    }
+
+    // Re-queue job to BullMQ webhook queue
+    await webhookQueue.add('send-webhook', {
+      url: dlqEntry.url,
+      secret: dlqEntry.secret,
+      payload: dlqEntry.payload
+    });
+
+    dlqEntry.replayed = true;
+    dlqEntry.replayedAt = new Date();
+    await dlqEntry.save();
+
+    logger.info('Webhook DLQ job replayed', { dlqId: dlqEntry._id, url: dlqEntry.url });
+
+    res.json({
+      message: 'Webhook delivery requeued successfully',
+      dlqId: dlqEntry._id,
+      replayedAt: dlqEntry.replayedAt
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // DELETE /api/webhooks/:id — Delete a webhook listener
 router.delete('/:id', async (req, res, next) => {
   try {

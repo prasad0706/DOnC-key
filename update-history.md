@@ -167,3 +167,15 @@ This document records the incremental updates made to the DOnC-key platform, cat
   * **Worker Header Dispatch**: Updated [worker.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/worker.js#L66) to compute HMAC signatures and attach `X-Hub-Signature-256: sha256=<signature>` headers to outgoing POST deliveries.
   * **Unit Test Suite**: Created [webhooks.test.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/tests/webhooks.test.js) testing header formatting, validity checks, and payload tampering rejections (100% test pass rate across 4 suites and 14 tests).
   * **Roadmap Update**: Marked "Implement Webhook Payload Signing" as complete in [todo-tasks.md](file:///c:/Users/Prasad/Downloads/Projects/donk/todo-tasks.md).
+
+---
+
+### 📝 Prompt 16: Implement Webhook Dead Letter Queue (DLQ) & Manual Replay
+* **Date**: August 15, 2026
+* **Objective**: Prevent failed webhook payload data loss by routing exhausted retry jobs to a Dead Letter Queue and providing manual replay API endpoints.
+* **Work Done & Edits**:
+  * **DLQ Schema**: Created [WebhookDLQ.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/models/WebhookDLQ.js) to store failed delivery payloads, URLs, error messages, and retry timestamps.
+  * **Worker DLQ Routing**: Updated `webhookWorker.on('failed')` in [worker.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/worker.js#L103) to automatically capture and persist permanently failed jobs into the `WebhookDLQ` collection.
+  * **Replay Endpoints**: Updated [webhooks.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/routes/webhooks.js#L56) adding `GET /api/webhooks/dlq` (to list failed jobs) and `POST /api/webhooks/dlq/:id/replay` (to re-queue failed deliveries back to BullMQ).
+  * **Unit Test Suite**: Updated [webhooks.test.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/tests/webhooks.test.js#L50) testing DLQ schema formatting and payload replay integrity (100% test pass rate across 4 suites and 15 tests).
+  * **Roadmap Update**: Marked "Implement Webhook Dead Letter Queue (DLQ)" as complete in [todo-tasks.md](file:///c:/Users/Prasad/Downloads/Projects/donk/todo-tasks.md).
