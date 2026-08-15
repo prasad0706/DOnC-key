@@ -62,19 +62,29 @@ console.log('Document processing worker started');
 
 // Webhook delivery worker
 const axios = require('axios');
+const { generateWebhookSignature } = require('./utils/webhookSigner');
+
 const webhookWorker = new Worker('webhookDelivery', async job => {
-  const { url, payload } = job.data;
+  const { url, payload, secret } = job.data;
   console.log(`Worker: Delivering webhook event "${payload.event}" to ${url}`);
 
+  const signatureHeader = generateWebhookSignature(payload, secret);
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'User-Agent': 'DOnC-key-Platform/1.0'
+  };
+
+  if (signatureHeader) {
+    headers['X-Hub-Signature-256'] = signatureHeader;
+  }
+
   await axios.post(url, payload, {
-    headers: {
-      'Content-Type': 'application/json',
-      'User-Agent': 'DOnC-key-Platform/1.0'
-    },
+    headers,
     timeout: 5000
   });
 
-  console.log(`Worker: Webhook successfully delivered to ${url}`);
+  console.log(`Worker: Webhook successfully signed & delivered to ${url}`);
   return { success: true, url };
 }, {
   connection: redisConnection,

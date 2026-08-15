@@ -23,9 +23,9 @@
 - [x] **Implement Automated Testing**
   - [x] Setup Vitest or Jest/Supertest in the backend
   - [x] Add integration tests covering auth, document upload, and worker jobs
-- [ ] **Implement Webhook Payload Signing**
-  - [ ] Compute HMAC signature (SHA-256) of webhook payload using a shared project/user secret
-  - [ ] Dispatch signature in `X-Hub-Signature-256` header in [worker.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/worker.js)
+- [x] **Implement Webhook Payload Signing**
+  - [x] Compute HMAC signature (SHA-256) of webhook payload using a shared project/user secret
+  - [x] Dispatch signature in `X-Hub-Signature-256` header in [worker.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/worker.js)
 - [ ] **Implement Webhook Dead Letter Queue (DLQ)**
   - [ ] Route permanently failed webhook jobs to a BullMQ DLQ
   - [ ] Expose an endpoint and UI options to replay failed webhook events

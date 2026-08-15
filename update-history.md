@@ -155,3 +155,15 @@ This document records the incremental updates made to the DOnC-key platform, cat
     * Created [auth.test.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/tests/auth.test.js) for token parsing and timing-safe API key hash verification testing.
     * Created [documents.test.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/tests/documents.test.js) for Express REST API endpoint integration testing via Supertest.
   * **Roadmap Update**: Marked "Implement Automated Testing" as complete in [todo-tasks.md](file:///c:/Users/Prasad/Downloads/Projects/donk/todo-tasks.md).
+
+---
+
+### 📝 Prompt 15: Implement Webhook Payload Signing (HMAC SHA-256 & X-Hub-Signature-256)
+* **Date**: August 12, 2026
+* **Objective**: Add cryptographic authenticity guarantees to outgoing webhooks using HMAC SHA-256 signatures dispatched via the `X-Hub-Signature-256` header.
+* **Work Done & Edits**:
+  * **Signing Utility**: Created [webhookSigner.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/utils/webhookSigner.js) implementing `generateWebhookSignature` and constant-time `verifyWebhookSignature`.
+  * **Secret Management**: Updated [Webhook.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/models/Webhook.js#L19) and [webhooks.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/routes/webhooks.js#L13) to auto-generate or accept 48-char random secrets on listener registration.
+  * **Worker Header Dispatch**: Updated [worker.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/worker.js#L66) to compute HMAC signatures and attach `X-Hub-Signature-256: sha256=<signature>` headers to outgoing POST deliveries.
+  * **Unit Test Suite**: Created [webhooks.test.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/tests/webhooks.test.js) testing header formatting, validity checks, and payload tampering rejections (100% test pass rate across 4 suites and 14 tests).
+  * **Roadmap Update**: Marked "Implement Webhook Payload Signing" as complete in [todo-tasks.md](file:///c:/Users/Prasad/Downloads/Projects/donk/todo-tasks.md).

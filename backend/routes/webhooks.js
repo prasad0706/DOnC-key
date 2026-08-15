@@ -10,15 +10,17 @@ router.use(verifyToken);
 // POST /api/webhooks — Create a new webhook listener
 router.post('/', async (req, res, next) => {
   try {
-    const { url, events, projectId } = req.body;
+    const { url, events, projectId, secret } = req.body;
 
     if (!url || !projectId) {
       return res.status(400).json({ error: 'URL and Project ID are required' });
     }
 
+    const crypto = require('crypto');
     const webhook = new Webhook({
       url,
       events: events || ['document.ready', 'document.failed'],
+      secret: secret || crypto.randomBytes(24).toString('hex'),
       projectId,
       userId: req.user.uid
     });

@@ -164,6 +164,7 @@ async function triggerWebhooks(document, event, payloadData) {
     const promises = webhooks.map(webhook => {
       return webhookQueue.add('send-webhook', {
         url: webhook.url,
+        secret: webhook.secret,
         payload
       });
     });

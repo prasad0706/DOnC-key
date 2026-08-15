@@ -16,6 +16,11 @@ const webhookSchema = new mongoose.Schema(
       type: Boolean,
       default: true
     },
+    secret: {
+      type: String,
+      required: true,
+      default: () => require('crypto').randomBytes(24).toString('hex')
+    },
     projectId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Project',
