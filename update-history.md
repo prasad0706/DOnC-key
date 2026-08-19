@@ -191,3 +191,14 @@ This document records the incremental updates made to the DOnC-key platform, cat
   * **Environment Defaults**: Added `GEMINI_MAX_RPM=15` and `GEMINI_RPM_DURATION_MS=60000` to [.env.example](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/.env.example).
   * **Unit Test Suite**: Created [rateLimiter.test.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/tests/rateLimiter.test.js) testing RPM calculations and interval window math (100% test pass rate across 5 suites and 18 tests).
   * **Roadmap Update**: Marked "Implement Proactive Rate-Limiting" as complete in [todo-tasks.md](file:///c:/Users/Prasad/Downloads/Projects/donk/todo-tasks.md).
+
+---
+
+### 📝 Prompt 18: Implement Deep File Validation (Magic Byte Signature Sniffing)
+* **Date**: August 19, 2026
+* **Objective**: Protect against MIME header spoofing and malicious file uploads by performing deep server-side magic byte inspection on temporary disk files prior to cloud upload.
+* **Work Done & Edits**:
+  * **Magic Byte Inspector**: Created [fileValidator.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/utils/fileValidator.js) inspecting binary headers for PDF (`%PDF-`), PNG (`0x89504E47`), JPEG (`0xFFD8FF`), GIF (`GIF87a`/`89a`), OpenXML (`PK\x03\x04`), and plain text/CSV. Includes strict rejection of executable headers (`MZ` `.exe`, `\x7fELF`, `0xCAFEBABE`).
+  * **Upload Route Integration**: Updated [documents.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/routes/documents.js#L65) to inspect magic bytes before Firebase upload and immediately purge non-valid files from disk.
+  * **Unit Test Suite**: Created [fileValidator.test.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/tests/fileValidator.test.js) testing document signatures, plain text inspection, and spoofed `.exe` binary header rejections (100% test pass rate across 6 suites and 25 tests).
+  * **Roadmap Update**: Marked "Implement Deep File Validation" as complete in [todo-tasks.md](file:///c:/Users/Prasad/Downloads/Projects/donk/todo-tasks.md).

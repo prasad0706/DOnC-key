@@ -55,12 +55,29 @@ const upload = multer({
   }
 });
 
+const { validateFileMagicBytes } = require('../utils/fileValidator');
+
 // POST /api/documents/upload — Upload document(s) (secured)
 router.post('/upload', verifyToken, uploadLimiter, upload.array('document', 10), async (req, res, next) => {
   try {
     const files = req.files || (req.file ? [req.file] : []);
     if (files.length === 0) {
       return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    // Perform Deep Server-Side File Validation (Magic Byte Sniffing)
+    for (const file of files) {
+      const validation = validateFileMagicBytes(file.path);
+      if (!validation.isValid) {
+        // Immediately purge invalid/spoofed temporary file from disk
+        if (fsSync.existsSync(file.path)) {
+          fsSync.unlinkSync(file.path);
+        }
+        logger.warn('Deep File Validation Failed', { fileName: file.originalname, error: validation.error });
+        return res.status(400).json({
+          error: `Security error: File content magic bytes failed validation. ${validation.error || ''}`
+        });
+      }
     }
 
     const { projectId, modelSelected, customSchema } = req.body;
