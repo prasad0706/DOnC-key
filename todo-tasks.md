@@ -29,8 +29,8 @@
 - [x] **Implement Webhook Dead Letter Queue (DLQ)**
   - [x] Route permanently failed webhook jobs to a BullMQ DLQ
   - [x] Expose an endpoint and UI options to replay failed webhook events
-- [ ] **Implement Proactive Rate-Limiting**
-  - [ ] Configure BullMQ queue-level limiters in [queue.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/utils/queue.js) to proactively restrict execution speeds to match upstream Gemini API constraints
+- [x] **Implement Proactive Rate-Limiting**
+  - [x] Configure BullMQ queue-level limiters in [queue.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/utils/queue.js) to proactively restrict execution speeds to match upstream Gemini API constraints
 - [ ] **Implement Deep File Validation**
   - [ ] Sniff magic bytes using a library like `file-type` on the server in [documents.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/routes/documents.js) rather than trusting client-supplied MIME headers
 - [ ] **Implement Cost/Usage Guardrails**

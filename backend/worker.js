@@ -41,6 +41,10 @@ const worker = new Worker('documentProcessing', async job => {
 }, {
   connection: redisConnection,
   concurrency: 1, // Process one document at a time
+  limiter: {
+    max: parseInt(process.env.GEMINI_MAX_RPM || '15', 10),
+    duration: parseInt(process.env.GEMINI_RPM_DURATION_MS || '60000', 10)
+  },
   removeOnComplete: {
     count: 100 // Keep last 100 completed jobs
   },

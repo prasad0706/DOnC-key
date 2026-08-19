@@ -41,8 +41,13 @@ if (process.env.REDIS_URL) {
   logger.info('Initialized BullMQ Queues with Redis');
 } else {
   // In-memory job queues (fallback when Redis is not available)
-  logger.info('REDIS_URL not set. Using in-memory fallback queues.');
+  logger.info('REDIS_URL not set. Using in-memory fallback queues with proactive rate throttling.');
   const docJobQueue = [];
+  let lastProcessedTime = 0;
+
+  // Proactive Rate Limiting interval (e.g. 15 RPM = 4000ms delay per job execution window)
+  const maxRpm = parseInt(process.env.GEMINI_MAX_RPM || '15', 10);
+  const minJobIntervalMs = Math.ceil(60000 / Math.max(1, maxRpm));
 
   documentQueue = {
     add: async (name, data) => {
@@ -57,7 +62,11 @@ if (process.env.REDIS_URL) {
       docJobQueue.push(job);
       logger.info('Document Job added to fallback queue', { name, documentId: data.documentId });
 
-      setTimeout(() => processDocJob(job), 100);
+      const now = Date.now();
+      const delay = Math.max(100, (lastProcessedTime + minJobIntervalMs) - now);
+      lastProcessedTime = now + delay;
+
+      setTimeout(() => processDocJob(job), delay);
       return { id: jobId };
     }
   };

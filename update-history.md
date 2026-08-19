@@ -179,3 +179,15 @@ This document records the incremental updates made to the DOnC-key platform, cat
   * **Replay Endpoints**: Updated [webhooks.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/routes/webhooks.js#L56) adding `GET /api/webhooks/dlq` (to list failed jobs) and `POST /api/webhooks/dlq/:id/replay` (to re-queue failed deliveries back to BullMQ).
   * **Unit Test Suite**: Updated [webhooks.test.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/tests/webhooks.test.js#L50) testing DLQ schema formatting and payload replay integrity (100% test pass rate across 4 suites and 15 tests).
   * **Roadmap Update**: Marked "Implement Webhook Dead Letter Queue (DLQ)" as complete in [todo-tasks.md](file:///c:/Users/Prasad/Downloads/Projects/donk/todo-tasks.md).
+
+---
+
+### 📝 Prompt 17: Implement Proactive Rate-Limiting (BullMQ Worker Limiter)
+* **Date**: August 19, 2026
+* **Objective**: Supplement reactive exponential backoff for 429 Too Many Requests responses by implementing proactive, queue-level rate limiters configured to Google Gemini API limits.
+* **Work Done & Edits**:
+  * **Worker Proactive Limiter**: Updated [worker.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/worker.js#L44) to add BullMQ's native `limiter: { max: GEMINI_MAX_RPM, duration: GEMINI_RPM_DURATION_MS }` option (defaulting to 15 Requests Per Minute).
+  * **Fallback Queue Throttling**: Updated [queue.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/utils/queue.js#L44) to enforce proactive minimum delay intervals between tasks during local testing without Redis.
+  * **Environment Defaults**: Added `GEMINI_MAX_RPM=15` and `GEMINI_RPM_DURATION_MS=60000` to [.env.example](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/.env.example).
+  * **Unit Test Suite**: Created [rateLimiter.test.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/tests/rateLimiter.test.js) testing RPM calculations and interval window math (100% test pass rate across 5 suites and 18 tests).
+  * **Roadmap Update**: Marked "Implement Proactive Rate-Limiting" as complete in [todo-tasks.md](file:///c:/Users/Prasad/Downloads/Projects/donk/todo-tasks.md).
