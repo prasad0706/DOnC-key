@@ -33,9 +33,9 @@
   - [x] Configure BullMQ queue-level limiters in [queue.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/utils/queue.js) to proactively restrict execution speeds to match upstream Gemini API constraints
 - [x] **Implement Deep File Validation**
   - [x] Sniff magic bytes using a library like `file-type` on the server in [documents.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/routes/documents.js) rather than trusting client-supplied MIME headers
-- [x] **Implement Cost/Usage Guardrails**
-  - [x] Establish daily/monthly token/operational usage limits per user/project
-  - [x] Check limits before uploading or processing files
+- [ ] **Implement Cost/Usage Guardrails**
+  - [ ] Establish daily/monthly token/operational usage limits per user/project
+  - [ ] Check limits before uploading or processing files
 - [ ] **Implement API Versioning**
   - [ ] Standardize all backend routes (like `/api/documents`, `/api/projects`, etc.) to use `/api/v1/...` in [server.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/server.js)
 - [ ] **Address Prompt Injection Risk**
