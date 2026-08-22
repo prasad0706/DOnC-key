@@ -86,10 +86,24 @@ router.post('/upload', verifyToken, uploadLimiter, upload.array('document', 10),
       return res.status(400).json({ error: 'Project ID is required. Please select or create a project.' });
     }
 
+    const { checkUsageLimits, incrementUsage } = require('../utils/usageGuard');
+
     // Verify project belongs to user
     const project = await Project.findOne({ _id: projectId, userId: req.user.uid });
     if (!project) {
       throw new NotFoundError('Project');
+    }
+
+    // Cost & Usage Guardrail Check
+    const usageStatus = await checkUsageLimits(projectId, req.user.uid);
+    if (!usageStatus.allowed) {
+      // Purge uploaded temporary files if guardrail limit is reached
+      for (const file of files) {
+        if (fsSync.existsSync(file.path)) fsSync.unlinkSync(file.path);
+      }
+      return res.status(429).json({
+        error: `Daily usage limit reached for this project (${usageStatus.maxDocsPerDay} documents/day). Limit resets at midnight UTC.`
+      });
     }
 
     const fs = require('fs').promises;
@@ -210,6 +224,9 @@ router.post('/upload', verifyToken, uploadLimiter, upload.array('document', 10),
       });
 
       logger.info('Document uploaded and queued', { documentId, projectId, userId: req.user.uid, storageProvider });
+
+      // Atomically increment daily project usage guardrail counter
+      await incrementUsage(projectId, req.user.uid, 1, 0);
 
       results.push({
         message: 'Document uploaded and queued for processing',

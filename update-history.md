@@ -202,3 +202,16 @@ This document records the incremental updates made to the DOnC-key platform, cat
   * **Upload Route Integration**: Updated [documents.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/routes/documents.js#L65) to inspect magic bytes before Firebase upload and immediately purge non-valid files from disk.
   * **Unit Test Suite**: Created [fileValidator.test.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/tests/fileValidator.test.js) testing document signatures, plain text inspection, and spoofed `.exe` binary header rejections (100% test pass rate across 6 suites and 25 tests).
   * **Roadmap Update**: Marked "Implement Deep File Validation" as complete in [todo-tasks.md](file:///c:/Users/Prasad/Downloads/Projects/donk/todo-tasks.md).
+
+---
+
+### 📝 Prompt 19: Implement Cost/Usage Guardrails (Daily Quota Enforcement)
+* **Date**: August 19, 2026
+* **Objective**: Enforce daily document processing volume and token consumption limits per project to protect against runaway LLM API costs.
+* **Work Done & Edits**:
+  * **Usage Tracking Model**: Created [Usage.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/models/Usage.js) storing daily metrics (`date: YYYY-MM-DD`, `documentCount`, `tokenCount`, `apiCalls`).
+  * **Guardrail Helper**: Created [usageGuard.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/utils/usageGuard.js) implementing `checkUsageLimits` and `incrementUsage` against configurable parameters (`MAX_DOCS_PER_DAY=50`, `MAX_TOKENS_PER_DAY=100000`).
+  * **Upload Route Enforcement**: Updated [documents.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/routes/documents.js#L92) to block document ingestion when quota is reached (HTTP 429) and increment daily usage counters on successful queueing.
+  * **Usage API Route**: Created [usage.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/routes/usage.js) exposing `GET /api/usage?projectId=...` for frontend quota tracking.
+  * **Unit Test Suite**: Created [usageGuard.test.js](file:///c:/Users/Prasad/Downloads/Projects/donk/backend/tests/usageGuard.test.js) testing default limits, custom environment limits, and reset timestamp calculations (100% test pass rate across 7 suites and 28 tests).
+  * **Roadmap Update**: Marked "Implement Cost/Usage Guardrails" as complete in [todo-tasks.md](file:///c:/Users/Prasad/Downloads/Projects/donk/todo-tasks.md).
